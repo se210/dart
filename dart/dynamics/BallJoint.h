@@ -40,12 +40,66 @@
 #include <Eigen/Dense>
 
 #include "dart/dynamics/MultiDofJoint.h"
+#include "dart/dynamics/SO3Joint.h"
 
 namespace dart {
 namespace dynamics {
 
+///// class BallJoint
+//class BallJoint : public MultiDofJoint<3>
+//{
+//public:
+//  /// Constructor
+//  explicit BallJoint(const std::string& _name = "BallJoint");
+
+//  /// Destructor
+//  virtual ~BallJoint();
+
+//  /// Convert a rotation into a 3D vector that can be used to set the positions
+//  /// of a BallJoint. The positions returned by this function will result in a
+//  /// relative transform of
+//  /// getTransformFromParentBodyNode() * _rotation * getTransformFromChildBodyNode().inverse()
+//  /// between the parent BodyNode and the child BodyNode frames when applied to
+//  /// a BallJoint.
+//  template <typename RotationType>
+//  static Eigen::Vector3d convertToPositions(const RotationType& _rotation)
+//  {
+//    return math::logMap(_rotation);
+//  }
+
+//  /// Convert a BallJoint-style position vector into a transform
+//  static Eigen::Isometry3d convertToTransform(const Eigen::Vector3d& _positions);
+
+//  /// Convert a BallJoint-style position vector into a rotation matrix
+//  static Eigen::Matrix3d convertToRotation(const Eigen::Vector3d& _positions);
+
+//protected:
+//  // Documentation inherited
+//  virtual void integratePositions(double _dt);
+
+//  // Documentation inherited
+//  virtual void updateDegreeOfFreedomNames();
+
+//  // Documentation inherited
+//  virtual void updateLocalTransform() const;
+
+//  // Documentation inherited
+//  virtual void updateLocalJacobian(bool =true) const;
+
+//  // Documentation inherited
+//  virtual void updateLocalJacobianTimeDeriv() const;
+
+//protected:
+//  /// Rotation matrix
+//  mutable Eigen::Isometry3d mR;
+
+//public:
+//  // To get byte-aligned Eigen vectors
+//  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+//};
+
 /// class BallJoint
-class BallJoint : public MultiDofJoint<3>
+class BallJoint : public SO3Joint
 {
 public:
   /// Constructor
@@ -60,42 +114,25 @@ public:
   /// getTransformFromParentBodyNode() * _rotation * getTransformFromChildBodyNode().inverse()
   /// between the parent BodyNode and the child BodyNode frames when applied to
   /// a BallJoint.
-  template <typename RotationType>
-  static Eigen::Vector3d convertToPositions(const RotationType& _rotation)
-  {
-    return math::logMap(_rotation);
-  }
+//  template <typename RotationType>
+//  static Eigen::Vector3d convertToPositions(const RotationType& _rotation)
+//  {
+//    return math::logMap(_rotation);
+//  }
 
-  /// Convert a BallJoint-style position vector into a transform
-  static Eigen::Isometry3d convertToTransform(const Eigen::Vector3d& _positions);
+//  /// Convert a BallJoint-style position vector into a transform
+//  static Eigen::Isometry3d convertToTransform(const Eigen::Vector3d& _positions);
 
-  /// Convert a BallJoint-style position vector into a rotation matrix
-  static Eigen::Matrix3d convertToRotation(const Eigen::Vector3d& _positions);
-
-protected:
-  // Documentation inherited
-  virtual void integratePositions(double _dt);
-
-  // Documentation inherited
-  virtual void updateDegreeOfFreedomNames();
-
-  // Documentation inherited
-  virtual void updateLocalTransform() const;
-
-  // Documentation inherited
-  virtual void updateLocalJacobian(bool =true) const;
-
-  // Documentation inherited
-  virtual void updateLocalJacobianTimeDeriv() const;
+//  /// Convert a BallJoint-style position vector into a rotation matrix
+//  static Eigen::Matrix3d convertToRotation(const Eigen::Vector3d& _positions);
 
 protected:
-  /// Rotation matrix
-  mutable Eigen::Isometry3d mR;
 
 public:
   // To get byte-aligned Eigen vectors
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 };
+
 
 }  // namespace dynamics
 }  // namespace dart

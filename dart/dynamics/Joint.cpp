@@ -70,7 +70,8 @@ Joint::Joint(const std::string& _name)
     mNeedPrimaryAccelerationUpdate(true),
     mIsLocalJacobianDirty(true),
     mIsLocalJacobianTimeDerivDirty(true),
-    mIsPositionLimited(true)
+    mIsPositionLimited(true),
+    mGenCoordType(GeneralizedCoordinateType::NONE)
 {
 }
 

@@ -43,6 +43,7 @@
 
 #include "dart/common/Deprecated.h"
 #include "dart/math/Geometry.h"
+#include "dart/dynamics/DynamicsTypes.h"
 
 namespace dart {
 namespace renderer {
@@ -276,6 +277,12 @@ public:
 
   /// Get upper limit for position
   virtual double getPositionUpperLimit(size_t _index) const = 0;
+
+  ///
+  /// TODO(JS)
+  virtual Eigen::VectorXd getFiniteDifference(
+      const Eigen::VectorXd& _pos1,
+      const Eigen::VectorXd& _pos2) const {}
 
   /// \}
 
@@ -587,7 +594,7 @@ protected:
   /// is due to a change in Joint positions, because not all Joint types have a
   /// Local Jacobian that depends on their Joint positions, so a Local Jacobian
   /// update would not actually be required.
-  virtual void updateLocalJacobian(bool _mandatory=true) const = 0;
+  virtual void updateLocalJacobian(bool _mandatory = true) const = 0;
 
   /// Update time derivative of generalized Jacobian from parent body
   /// node to child body node w.r.t. local generalized coordinate
@@ -827,6 +834,9 @@ protected:
   /// True iff this joint's local Jacobian time derivative has not been updated
   /// since the last position or velocity change
   mutable bool mIsLocalJacobianTimeDerivDirty;
+
+  /// Generalized coordinate type of the Joint
+  GeneralizedCoordinateType mGenCoordType;
 
   /// Transmitting wrench from parent body to child body expressed in child body
   DEPRECATED(4.3)

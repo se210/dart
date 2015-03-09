@@ -2142,11 +2142,11 @@ void BodyNode::_updateBodyJacobian() const
   //          n: number of dependent coordinates
   //--------------------------------------------------------------------------
 
-  if(NULL == mParentJoint)
+  if (nullptr == mParentJoint)
     return;
 
   const size_t localDof     = mParentJoint->getNumDofs();
-  assert(getNumDependentGenCoords() >= localDof);
+  assert(getNumDependentGenCoords() >= localDof);  // check overflow
   const size_t ascendantDof = getNumDependentGenCoords() - localDof;
 
   // Parent Jacobian

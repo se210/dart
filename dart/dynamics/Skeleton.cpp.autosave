@@ -591,7 +591,7 @@ void Skeleton::resetCommands()
 
 //==============================================================================
 Eigen::Vector3d Skeleton::getFiniteDifference(const Eigen::VectorXd& _pos1,
-                                              const Eigen::VectorXd& _pos2)
+                                              const Eigen::VectorXd& _pos2) const
 {
   Eigen::VectorXd delQ(getNumDofs());
 

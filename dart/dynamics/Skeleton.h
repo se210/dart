@@ -260,6 +260,16 @@ public:
 
   /// \}
 
+  // TODO(JS)
+  // static Eigen::Vector3d getFiniteDifference(const Eigen::VectorXd& _pos1,
+  // const Eigen::VectorXd& _pos2,
+  // RotationGenCoordType _rotationType,
+  // TransformGenCoordType _transformType);
+
+  /// TODO(JS)
+  Eigen::Vector3d getFiniteDifference(const Eigen::VectorXd& _pos1,
+                                      const Eigen::VectorXd& _pos2) const;
+
   //----------------------------------------------------------------------------
   // Position
   //----------------------------------------------------------------------------

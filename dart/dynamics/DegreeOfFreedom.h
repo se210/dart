@@ -40,6 +40,8 @@
 #include <string>
 #include <Eigen/Core>
 
+#include "dart/dynamics/DynamicsTypes.h"
+
 namespace dart {
 namespace dynamics {
 
@@ -58,6 +60,7 @@ public:
   friend class Joint;
   friend class SingleDofJoint;
   template<size_t> friend class MultiDofJoint;
+  friend class SO3Joint;
   friend class Skeleton;
 
   /// Change the name of this DegreeOfFreedom
@@ -85,6 +88,20 @@ public:
 
   /// Get this DegreeOfFreedom's index within its Joint
   size_t getIndexInJoint() const;
+
+  // -- Generalized coordinate type --------------------------------------------
+
+  /// Set the generalized coordinate type
+  void setGeneralizedCoordinateType(GeneralizedCoordinateType _type)
+  {
+    mGenCoordType = _type;
+  }
+
+  /// Get the generalized coordinate type
+  GeneralizedCoordinateType getGeneralizedCoordinateType() const
+  {
+    return mGenCoordType;
+  }
 
   // -- Position functions -----------------------------------------------------
 
@@ -272,6 +289,11 @@ protected:
   // DegreeOfFreedom and every DegreeOfFreedom is deleted when its Joint is
   // destructed.
 
+  /// Generalized coordinate type
+  GeneralizedCoordinateType mGenCoordType;
+
+  /// True if the generalized coordinate type is inherited
+  bool mIsGenCoordTypeInheritedFromParentJoint;
 };
 
 } // namespace dynamics

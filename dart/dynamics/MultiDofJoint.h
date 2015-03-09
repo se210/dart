@@ -765,6 +765,25 @@ MultiDofJoint<DOF>::MultiDofJoint(const std::string& _name)
     mTotalForce(Eigen::Matrix<double, DOF, 1>::Zero()),
     mTotalImpulse(Eigen::Matrix<double, DOF, 1>::Zero())
 {
+  switch (DOF)
+  {
+    case 1:
+      mGenCoordType = GeneralizedCoordinateType::EUCLIDEAN_SPACE_1D;
+      break;
+    case 2:
+      mGenCoordType = GeneralizedCoordinateType::EUCLIDEAN_SPACE_2D;
+      break;
+    case 3:
+      mGenCoordType = GeneralizedCoordinateType::EUCLIDEAN_SPACE_3D;
+      break;
+//    default:
+//      // Shouldn't reach here
+//      dterr << "Unsupported MultiDofJoint was created with dof '" << DOF
+//            << "'." << std::endl;
+//      assert(0);
+//      break;
+  }
+
   for (size_t i = 0; i < DOF; ++i)
     mDofs[i] = createDofPointer(mName, i);
 }

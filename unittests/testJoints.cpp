@@ -592,8 +592,8 @@ TEST_F(JOINTS, CONVENIENCE_FUNCTIONS)
   {
     // -- convert transforms to positions and then positions back to transforms
     Eigen::Isometry3d desired_freejoint_tf = random_transform();
-    freejoint->setPositions(FreeJoint::convertToPositions(desired_freejoint_tf));
-    Eigen::Isometry3d actual_freejoint_tf = FreeJoint::convertToTransform(
+    freejoint->setPositions(freejoint->convertToPositions(desired_freejoint_tf));
+    Eigen::Isometry3d actual_freejoint_tf = freejoint->convertToTransform(
           freejoint->getPositions());
 
     Eigen::Isometry3d desired_eulerjoint_tf = random_transform();
@@ -606,8 +606,8 @@ TEST_F(JOINTS, CONVENIENCE_FUNCTIONS)
     Eigen::Isometry3d desired_balljoint_tf = random_transform();
     desired_balljoint_tf.translation() = Eigen::Vector3d::Zero();
     balljoint->setPositions(
-          BallJoint::convertToPositions(desired_balljoint_tf.linear()));
-    Eigen::Isometry3d actual_balljoint_tf = BallJoint::convertToTransform(
+          balljoint->convertToPositions(desired_balljoint_tf.linear()));
+    Eigen::Isometry3d actual_balljoint_tf = balljoint->convertToTransform(
           balljoint->getPositions());
 
     skel->computeForwardKinematics(true, false, false);
