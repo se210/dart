@@ -752,33 +752,33 @@ TEST(Geometry, Issue333)
   int n = (int) (2*M_PI /dang);
 
   Tf.matrix() << -0.815214,  -0.57916,        -0,  0.437796,
-    -0.57916,  0.815214,         0,  0.488175,
-        0,         0,        -1,      1.03,
-        0,         0,         0,         1;
+      -0.57916,  0.815214,         0,  0.488175,
+      0,         0,        -1,      1.03,
+      0,         0,         0,         1;
 
-   double det = Tf.linear().determinant();
+  double det = Tf.linear().determinant();
   std::cout << "Determinant of test TF: "<< det << std::endl;
 
-/*
+  /*
   for( size_t i = 0; i < n; ++i ) {
     Eigen::Matrix3d rot;
     rot = Eigen::AngleAxisd( i*dang, Eigen::Vector3d(0,0,1) );
     Tf.linear() = rot;
 */
-    // Get position with helper function
-    q = convertToPositions( Tf );
+  // Get position with helper function
+  q = convertToPositions( Tf );
 
-    // Get translation back with helper function
-    Tf_back = convertToTransform( q );
-    det = Tf_back.linear().determinant();
-    std::cout << "Determinant of test Tf_back: "<< det << std::endl;
-    //std::cout << "i: "<< i << std::endl;
-    std::cout << "\n ** Tf original: \n"<< Tf.matrix() << std::endl;
-    std::cout << "\n ** Positions from Tf: \n"<< q.transpose() << std::endl;
-    std::cout << "\n ** Tf from q: \n" << Tf_back.matrix() << std::endl;
-    std::cout << "\n\n" << std::endl;
+  // Get translation back with helper function
+  Tf_back = convertToTransform( q );
+  det = Tf_back.linear().determinant();
+  std::cout << "Determinant of test Tf_back: "<< det << std::endl;
+  //std::cout << "i: "<< i << std::endl;
+  std::cout << "\n ** Tf original: \n"<< Tf.matrix() << std::endl;
+  std::cout << "\n ** Positions from Tf: \n"<< q.transpose() << std::endl;
+  std::cout << "\n ** Tf from q: \n" << Tf_back.matrix() << std::endl;
+  std::cout << "\n\n" << std::endl;
 
-/*
+  /*
   }
 */
 }
@@ -786,9 +786,9 @@ TEST(Geometry, Issue333)
 //==============================================================================
 TEST(Geometry, LogMapVerification)
 {
-  const size_t numTests = 1e+0;
+  const size_t numTests = 1e+5;
   const double epsilon = 1e-7;
-  const double tol = 1e-11;
+  const double tol = 1e-15;
 
   for (size_t i = 0; i < numTests; ++i)
   {
@@ -806,9 +806,9 @@ TEST(Geometry, LogMapVerification)
     Eigen::Vector3d tinyQ1     = log(randomRTiny);
     Eigen::Vector3d tinyQ2     = log2(randomRTiny);
 
-    EXPECT_NEAR(randomQ[0], QEigen[0], tol);
-    EXPECT_NEAR(randomQ[1], QEigen[1], tol);
-    EXPECT_NEAR(randomQ[2], QEigen[2], tol);
+    EXPECT_NEAR(randomQ[0], QEigen[0], tol * 1e+1);
+    EXPECT_NEAR(randomQ[1], QEigen[1], tol * 1e+1);
+    EXPECT_NEAR(randomQ[2], QEigen[2], tol * 1e+1);
 
     EXPECT_NEAR(randomQ[0], Q1[0], tol);
     EXPECT_NEAR(randomQ[1], Q1[1], tol);
@@ -818,9 +818,9 @@ TEST(Geometry, LogMapVerification)
     EXPECT_NEAR(randomQ[1], Q2[1], tol);
     EXPECT_NEAR(randomQ[2], Q2[2], tol);
 
-    EXPECT_NEAR(randomQTiny[0], tinyQEigen[0], tol);
-    EXPECT_NEAR(randomQTiny[1], tinyQEigen[1], tol);
-    EXPECT_NEAR(randomQTiny[2], tinyQEigen[2], tol);
+    EXPECT_NEAR(randomQTiny[0], tinyQEigen[0], tol * 1e+7);
+    EXPECT_NEAR(randomQTiny[1], tinyQEigen[1], tol * 1e+7);
+    EXPECT_NEAR(randomQTiny[2], tinyQEigen[2], tol * 1e+7);
 
     EXPECT_NEAR(randomQTiny[0], tinyQ1[0], tol);
     EXPECT_NEAR(randomQTiny[1], tinyQ1[1], tol);
