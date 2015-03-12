@@ -38,6 +38,7 @@
 #include <gtest/gtest.h>
 #include "TestHelpers.h"
 
+#include "dart/common/Timer.h"
 #include "dart/math/Geometry.h"
 #include "dart/math/Helpers.h"
 #include "dart/dynamics/BallJoint.h"
@@ -599,6 +600,7 @@ TEST(LIE_GROUP_OPERATORS, ADJOINT_MAPPINGS)
     }
 }
 
+//==============================================================================
 Eigen::Vector3d log(const Eigen::Matrix3d& _m)
 {
   // T = (R, p) = exp([w, v]), t = ||w||
@@ -643,6 +645,7 @@ Eigen::Vector3d log(const Eigen::Matrix3d& _m)
   }
 }
 
+//==============================================================================
 Eigen::Vector3d log2(const Eigen::Matrix3d& _R)
 {
   // T = (R, p) = exp([w, v]), t = ||w||
@@ -709,6 +712,13 @@ Eigen::Vector3d log2(const Eigen::Matrix3d& _R)
 }
 
 //==============================================================================
+Eigen::Vector3d logEigen(const Eigen::Matrix3d& _R)
+{
+  Eigen::AngleAxisd aa(_R);
+  return aa.angle()*aa.axis();
+}
+
+//==============================================================================
 Eigen::Vector6d convertToPositions(const Eigen::Isometry3d& _tf)
 {
   Eigen::Vector6d x;
@@ -727,6 +737,7 @@ Eigen::Isometry3d convertToTransform(
   tf.translation() = _positions.tail<3>();
   return tf;
 }
+
 //==============================================================================
 TEST(Geometry, Issue333)
 {
@@ -759,6 +770,8 @@ TEST(Geometry, Issue333)
 
     // Get translation back with helper function
     Tf_back = convertToTransform( q );
+    det = Tf_back.linear().determinant();
+    std::cout << "Determinant of test Tf_back: "<< det << std::endl;
     //std::cout << "i: "<< i << std::endl;
     std::cout << "\n ** Tf original: \n"<< Tf.matrix() << std::endl;
     std::cout << "\n ** Positions from Tf: \n"<< q.transpose() << std::endl;
@@ -770,6 +783,127 @@ TEST(Geometry, Issue333)
 */
 }
 
+//==============================================================================
+TEST(Geometry, LogMapVerification)
+{
+  const size_t numTests = 1e+0;
+  const double epsilon = 1e-7;
+  const double tol = 1e-11;
+
+  for (size_t i = 0; i < numTests; ++i)
+  {
+    Eigen::Vector3d randomQ = Eigen::Vector3d::Random();
+    Eigen::Vector3d randomQTiny = randomQ.normalized() * epsilon;
+
+    Eigen::Matrix3d randomR = math::expMapRot(randomQ);
+    Eigen::Matrix3d randomRTiny = math::expMapRot(randomQTiny);
+
+    Eigen::Vector3d QEigen = logEigen(randomR);
+    Eigen::Vector3d Q1     = log(randomR);
+    Eigen::Vector3d Q2     = log2(randomR);
+
+    Eigen::Vector3d tinyQEigen = logEigen(randomRTiny);
+    Eigen::Vector3d tinyQ1     = log(randomRTiny);
+    Eigen::Vector3d tinyQ2     = log2(randomRTiny);
+
+    EXPECT_NEAR(randomQ[0], QEigen[0], tol);
+    EXPECT_NEAR(randomQ[1], QEigen[1], tol);
+    EXPECT_NEAR(randomQ[2], QEigen[2], tol);
+
+    EXPECT_NEAR(randomQ[0], Q1[0], tol);
+    EXPECT_NEAR(randomQ[1], Q1[1], tol);
+    EXPECT_NEAR(randomQ[2], Q1[2], tol);
+
+    EXPECT_NEAR(randomQ[0], Q2[0], tol);
+    EXPECT_NEAR(randomQ[1], Q2[1], tol);
+    EXPECT_NEAR(randomQ[2], Q2[2], tol);
+
+    EXPECT_NEAR(randomQTiny[0], tinyQEigen[0], tol);
+    EXPECT_NEAR(randomQTiny[1], tinyQEigen[1], tol);
+    EXPECT_NEAR(randomQTiny[2], tinyQEigen[2], tol);
+
+    EXPECT_NEAR(randomQTiny[0], tinyQ1[0], tol);
+    EXPECT_NEAR(randomQTiny[1], tinyQ1[1], tol);
+    EXPECT_NEAR(randomQTiny[2], tinyQ1[2], tol);
+
+    EXPECT_NEAR(randomQTiny[0], tinyQ2[0], tol);
+    EXPECT_NEAR(randomQTiny[1], tinyQ2[1], tol);
+    EXPECT_NEAR(randomQTiny[2], tinyQ2[2], tol);
+  }
+}
+
+//==============================================================================
+TEST(Geometry, LogMapPerformance)
+{
+  const size_t numTests = 1e+7;
+  const double epsilon = 1e-7;
+
+  common::Timer t;
+
+  Eigen::Vector3d randomQ1 = Eigen::Vector3d::Random();
+  Eigen::Vector3d randomQ2 = Eigen::Vector3d::Random();
+  Eigen::Matrix3d randomR1 = math::expMapRot(randomQ1);
+  Eigen::Matrix3d randomR2 = math::expMapRot(randomQ2);
+
+  Eigen::Vector3d randomQ1Tiny = randomQ1.normalized() * epsilon;
+  Eigen::Vector3d randomQ2Tiny = randomQ2.normalized() * epsilon;
+  Eigen::Matrix3d randomR1Tiny = math::expMapRot(randomQ1Tiny);
+  Eigen::Matrix3d randomR2Tiny = math::expMapRot(randomQ2Tiny);
+
+  t.start();
+  for (size_t i = 0; i < numTests; ++i)
+  {
+    logEigen(randomR1);
+    logEigen(randomR2);
+  }
+  t.stop();
+  std::cout << "logEigen(Q): " << t.getLastElapsedTime() << std::endl;
+
+  t.start();
+  for (size_t i = 0; i < numTests; ++i)
+  {
+    log(randomR1);
+    log(randomR2);
+  }
+  t.stop();
+  std::cout << "log(Q)     : " << t.getLastElapsedTime() << std::endl;
+
+  t.start();
+  for (size_t i = 0; i < numTests; ++i)
+  {
+    log2(randomR1);
+    log2(randomR2);
+  }
+  t.stop();
+  std::cout << "log2(Q)    : " << t.getLastElapsedTime() << std::endl;
+
+  t.start();
+  for (size_t i = 0; i < numTests; ++i)
+  {
+    logEigen(randomR1Tiny);
+    logEigen(randomR2Tiny);
+  }
+  t.stop();
+  std::cout << "logEigen(tinyQ): " << t.getLastElapsedTime() << std::endl;
+
+  t.start();
+  for (size_t i = 0; i < numTests; ++i)
+  {
+    log(randomR1Tiny);
+    log(randomR2Tiny);
+  }
+  t.stop();
+  std::cout << "log(tinyQ)     : " << t.getLastElapsedTime() << std::endl;
+
+  t.start();
+  for (size_t i = 0; i < numTests; ++i)
+  {
+    log2(randomR1Tiny);
+    log2(randomR2Tiny);
+  }
+  t.stop();
+  std::cout << "log2(tinyQ)    : " << t.getLastElapsedTime() << std::endl;
+}
 
 /******************************************************************************/
 int main(int argc, char* argv[])
