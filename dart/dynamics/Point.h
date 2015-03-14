@@ -37,7 +37,7 @@
 #ifndef DART_DYNAMICS_POINT_H_
 #define DART_DYNAMICS_POINT_H_
 
-#include "VectorEntity.h"
+#include "dart/dynamics/VectorEntity.h"
 
 namespace dart {
 namespace dynamics {

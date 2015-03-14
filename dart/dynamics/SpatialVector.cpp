@@ -49,7 +49,13 @@ SpatialVector::~SpatialVector()
 //==============================================================================
 Eigen::Vector6d SpatialVector::computeRelativeTo(const Frame* _referenceFrame) const
 {
-  return
+  // TODO(MXG): ... how should SpatialVectors be handled?
+}
+
+//==============================================================================
+void SpatialVector::computeWorldVector() const
+{
+  // TODO(MXG) ... how should SpatialVectors be handled?
 }
 
 } // namespace dynamics
