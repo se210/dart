@@ -36,6 +36,7 @@
 
 #include "dart/dynamics/Frame.h"
 #include "dart/dynamics/Shape.h"
+#include "dart/dynamics/Point.h"
 #include "dart/renderer/RenderInterface.h"
 #include "dart/common/Console.h"
 
@@ -207,6 +208,15 @@ Eigen::Vector6d Frame::getSpatialVelocity(const Eigen::Vector3d& _offset,
 }
 
 //==============================================================================
+Eigen::Vector6d Frame::getSpatialVelocity(const Eigen::Vector3d& _offset,
+                                          const Point* _relativeTo,
+                                          const Frame* _inCoordinatesOf) const
+{
+  return getSpatialVelocity(_offset, Frame::World(), _inCoordinatesOf)
+         - _relativeTo->getSpatialVelocity(Frame::World(), _inCoordinatesOf);
+}
+
+//==============================================================================
 Eigen::Vector3d Frame::getLinearVelocity(const Frame* _relativeTo,
                                          const Frame* _inCoordinatesOf) const
 {
@@ -216,6 +226,14 @@ Eigen::Vector3d Frame::getLinearVelocity(const Frame* _relativeTo,
 //==============================================================================
 Eigen::Vector3d Frame::getLinearVelocity(const Eigen::Vector3d& _offset,
                                          const Frame* _relativeTo,
+                                         const Frame* _inCoordinatesOf) const
+{
+  return getSpatialVelocity(_offset, _relativeTo, _inCoordinatesOf).tail<3>();
+}
+
+//==============================================================================
+Eigen::Vector3d Frame::getLinearVelocity(const Eigen::Vector3d& _offset,
+                                         const Point* _relativeTo,
                                          const Frame* _inCoordinatesOf) const
 {
   return getSpatialVelocity(_offset, _relativeTo, _inCoordinatesOf).tail<3>();
@@ -332,6 +350,15 @@ Eigen::Vector6d Frame::getSpatialAcceleration(const Eigen::Vector3d& _offset,
 }
 
 //==============================================================================
+Eigen::Vector6d Frame::getSpatialAcceleration(const Eigen::Vector3d& _offset,
+                                              const Point* _relativeTo,
+                                              const Frame* _inCoordinatesOf) const
+{
+  return getSpatialAcceleration(_offset, Frame::World(), _inCoordinatesOf)
+      - _relativeTo->getSpatialAcceleration(Frame::World(), _inCoordinatesOf);
+}
+
+//==============================================================================
 Eigen::Vector3d Frame::getLinearAcceleration(
     const Frame* _relativeTo, const Frame* _inCoordinatesOf) const
 {
@@ -363,6 +390,21 @@ Eigen::Vector3d Frame::getLinearAcceleration(const Eigen::Vector3d& _offset,
   const Eigen::Vector3d& a = (getSpatialAcceleration(_offset, _relativeTo,
                                                      this).tail<3>()
                                + v_rel.head<3>().cross(v_rel.tail<3>())).eval();
+
+  if(this == _inCoordinatesOf)
+    return a;
+
+  return getTransform(_inCoordinatesOf).linear() * a;
+}
+
+//==============================================================================
+Eigen::Vector3d Frame::getLinearAcceleration(const Eigen::Vector3d& _offset,
+                                             const Point* _relativeTo,
+                                             const Frame* _inCoordinatesOf) const
+{
+  const Eigen::Vector6d& v_rel = getSpatialVelocity(_offset, _relativeTo, this);
+  Eigen::Vector3d a = getSpatialAcceleration(_offset, _relativeTo, this).tail<3>()
+                      + v_rel.head<3>().cross(v_rel.tail<3>());
 
   if(this == _inCoordinatesOf)
     return a;

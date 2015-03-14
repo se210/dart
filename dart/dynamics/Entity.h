@@ -41,8 +41,6 @@
 #include <string>
 #include <vector>
 
-#include "dart/dynamics/Shape.h"
-
 namespace dart {
 namespace renderer {
 class RenderInterface;

@@ -47,6 +47,8 @@
 namespace dart {
 namespace dynamics {
 
+class Point;
+
 /// The Frame class serves as the backbone of DART's kinematic tree structure.
 ///
 /// Frame inherits Entity, so it exists within a reference Frame. This class
@@ -111,6 +113,12 @@ public:
                                      const Frame* _relativeTo,
                                      const Frame* _inCoordinatesOf) const;
 
+  /// Get the spatial velocity of a fixed point in this Frame with respect to
+  /// some other point.
+  Eigen::Vector6d getSpatialVelocity(const Eigen::Vector3d& _offset,
+                                     const Point* _relativeTo,
+                                     const Frame* _inCoordinatesOf) const;
+
   /// Get the linear portion of classical velocity of this Frame relative to
   /// some other Frame. It can be expressed in the coordinates of any Frame.
   Eigen::Vector3d getLinearVelocity(
@@ -123,6 +131,14 @@ public:
   Eigen::Vector3d getLinearVelocity(
       const Eigen::Vector3d& _offset,
       const Frame* _relativeTo = Frame::World(),
+      const Frame* _inCoordinatesOf = Frame::World()) const;
+
+  /// Get the linear velocity of a point that is fixed in this Frame. You can
+  /// specify a relative Point, and it can be expressed in the coordinates of
+  /// any Frame.
+  Eigen::Vector3d getLinearVelocity(
+      const Eigen::Vector3d& _offset,
+      const Point* _relativeTo,
       const Frame* _inCoordinatesOf = Frame::World()) const;
 
   /// Get the angular portion of classical velocity of this Frame relative to
@@ -175,15 +191,30 @@ public:
                                          const Frame* _relativeTo,
                                          const Frame* _inCoordinatesOf) const;
 
+  /// Get the spatial acceleration of a fixed point in this Frame, relative to
+  /// another Point.
+  Eigen::Vector6d getSpatialAcceleration(const Eigen::Vector3d& _offset,
+                                         const Point* _relativeTo,
+                                         const Frame* _inCoordinatesOf) const;
+
   /// Get the linear portion of classical acceleration of this Frame relative to
   /// some other Frame. It can be expressed in the coordinates of any Frame.
   Eigen::Vector3d getLinearAcceleration(
       const Frame* _relativeTo=Frame::World(),
       const Frame* _inCoordinatesOf=Frame::World()) const;
 
+  /// Get the linear portion of classical acceleration of a point in this Frame
+  /// relative to some other Frame.
   Eigen::Vector3d getLinearAcceleration(
       const Eigen::Vector3d& _offset,
       const Frame* _relativeTo=Frame::World(),
+      const Frame* _inCoordinatesOf=Frame::World()) const;
+
+  /// Get the linear portion of classical acceleration of a point in this Frame
+  /// relative to some other Point.
+  Eigen::Vector3d getLinearAcceleration(
+      const Eigen::Vector3d& _offset,
+      const Point* _relativeTo,
       const Frame* _inCoordinatesOf=Frame::World()) const;
 
   /// Get the angular portion of classical acceleration of this Frame relative
