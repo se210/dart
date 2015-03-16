@@ -34,29 +34,23 @@
  *   POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "dart/dynamics/SpatialVector.h"
-#include "dart/math/Geometry.h"
+#ifndef DART_DYNAMICS_SPATIALFORCE_H_
+#define DART_DYNAMICS_SPATIALFORCE_H_
+
+#include "dart/dynamics/EigenEntity.h"
 
 namespace dart {
 namespace dynamics {
 
-//==============================================================================
-SpatialVector::~SpatialVector()
+class SpatialForce : public EigenEntity<Eigen::SpatialForce>
 {
-  // Do nothing
-}
+public:
 
-//==============================================================================
-Eigen::Vector6d SpatialVector::computeRelativeTo(const Frame* _referenceFrame) const
-{
-  // TODO(MXG): ... how should SpatialVectors be handled?
-}
+  EIGENENTITY_COPIERS( SpatialForce, Eigen::SpatialForce )
 
-//==============================================================================
-void SpatialVector::computeWorldVector() const
-{
-  // TODO(MXG) ... how should SpatialVectors be handled?
-}
+};
 
 } // namespace dynamics
 } // namespace dart
+
+#endif // DART_DYNAMICS_SPATIALFORCE_H_

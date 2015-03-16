@@ -243,6 +243,9 @@ typename Derived::PlainObject AdTJacFixed(const Eigen::Isometry3d& _T,
 /// \brief Fast version of Ad([R 0; 0 1], V)
 Eigen::Vector6d AdR(const Eigen::Isometry3d& _T, const Eigen::Vector6d& _V);
 
+///// \brief Fast version of Ad(Inv([R 0; 0 1]), V)
+Eigen::Vector6d AdInvR(const Eigen::Isometry3d& _T, const Eigen::Vector6d& _V);
+
 /// \brief fast version of Ad(T, se3(w, 0))
 Eigen::Vector6d AdTAngular(const Eigen::Isometry3d& _T,
                            const Eigen::Vector3d& _w);
@@ -365,7 +368,6 @@ typename Derived::PlainObject AdInvTJacFixed(
 // Axis AdInvTAngular(const SE3& T, const Axis& w);
 
 ///// \brief Fast version of Ad(Inv([R 0; 0 1]), V)
-// se3 AdInvR(const SE3& T, const se3& V);
 
 /// \brief Fast version of Ad(Inv([R 0; 0 1]), se3(0, v))
 Eigen::Vector6d AdInvRLinear(const Eigen::Isometry3d& _T,

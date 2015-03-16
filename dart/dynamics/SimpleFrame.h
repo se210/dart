@@ -96,7 +96,7 @@ public:
                                   const Frame* _inCoordinatesOf);
 
   // Documentation inherited
-  virtual const Eigen::Vector6d& getRelativeSpatialVelocity() const;
+  virtual const Eigen::SpatialVelocity& getRelativeSpatialVelocity() const;
 
   //--------------------------------------------------------------------------
   // Acceleration
@@ -117,13 +117,13 @@ public:
       const Frame* _inCoordinatesOf);
 
   // Documentation inherited
-  virtual const Eigen::Vector6d& getRelativeSpatialAcceleration() const;
+  virtual const Eigen::SpatialAcceleration& getRelativeSpatialAcceleration() const;
 
   // Documentation inherited
-  virtual const Eigen::Vector6d& getPrimaryRelativeAcceleration() const;
+  virtual const Eigen::SpatialAcceleration& getPrimaryRelativeAcceleration() const;
 
   // Documentation inherited
-  virtual const Eigen::Vector6d& getPartialAcceleration() const;
+  virtual const Eigen::SpatialAcceleration& getPartialAcceleration() const;
 
   //--------------------------------------------------------------------------
   // Classic Method
@@ -153,13 +153,13 @@ protected:
   Eigen::Isometry3d mRelativeTf;
 
   /// Relative Velocity of this Frame
-  Eigen::Vector6d mRelativeVelocity;
+  Eigen::SpatialVelocity mRelativeVelocity;
 
   /// Relative Acceleration of this Frame
-  Eigen::Vector6d mRelativeAcceleration;
+  Eigen::SpatialAcceleration mRelativeAcceleration;
 
   /// Partial Acceleration of this Frame
-  mutable Eigen::Vector6d mPartialAcceleration;
+  mutable Eigen::SpatialAcceleration mPartialAcceleration;
 
 };
 

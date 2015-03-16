@@ -37,24 +37,21 @@
 #ifndef DART_DYNAMICS_POINT_H_
 #define DART_DYNAMICS_POINT_H_
 
-#include "dart/dynamics/VectorEntity.h"
+#include "dart/dynamics/EigenEntity.h"
 
 namespace dart {
 namespace dynamics {
 
 /// The Point class represents a geometric point that is fixed in its reference
 /// Frame.
-class Point : public VectorEntity<double, 3>
+class Point : public EigenEntity<Eigen::Vector3d>
 {
 public:
 
-  typedef VectorEntity<double, 3> Base;
-  typedef Base::Vector Vector;
-
-  VECTORENTITY_COPIERS( Point )
+  EIGENENTITY_COPIERS( Point, Eigen::Vector3d )
 
   // Inherit the constructor
-  using VectorEntity<double, 3>::VectorEntity;
+  using EigenEntity<Eigen::Vector3d>::EigenEntity;
 
   /// Destructor
   virtual ~Point();
@@ -66,12 +63,12 @@ public:
 
   /// Get the location of this point relative to its parent Frame.
   ///
-  /// Note that the Point class can be implicitly cast to an Eigen::Vector3d and
-  /// will return this same vector.
+  /// Note that this function is superfluous, because the Point class inherits
+  /// Vector3d, and its value is equivalent to this relative location vector.
   const Eigen::Vector3d& getRelativeLocation() const;
 
   /// Get the world location of this Point. Equivalent to wrtWorld()
-  const Eigen::Vector3d& getWorldLocation() const;
+  Eigen::Vector3d getWorldLocation() const;
 
   /// Get the linear velocity of this Point relative to some Frame
   Eigen::Vector3d getLinearVelocity(
@@ -114,16 +111,13 @@ public:
       const Point* _relativeTo,
       const Frame* _inCoordinatesOf = Frame::World()) const;
 
-  // Documentation inherited
-  void notifyTransformUpdate() override;
-
 protected:
 
   // Documentation inherited
   Eigen::Vector3d computeRelativeTo(const Frame *_referenceFrame) const override;
 
   // Documentation inherited
-  void computeWorldVector() const override;
+  Eigen::Vector3d computeRelativeToWorld() const override;
 };
 
 } // namespace dynamics

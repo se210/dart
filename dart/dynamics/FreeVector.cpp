@@ -34,7 +34,7 @@
  *   POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "FreeVector.h"
+#include "dart/dynamics/FreeVector.h"
 
 namespace dart {
 namespace dynamics {
@@ -53,10 +53,10 @@ Eigen::Vector3d FreeVector::computeRelativeTo(
 }
 
 //==============================================================================
-void FreeVector::computeWorldVector() const
+Eigen::Vector3d FreeVector::computeRelativeToWorld() const
 {
-  mWorldVector =
-      getParentFrame()->getWorldTransform().linear() * mRelativeVector;
+  return getParentFrame()->getWorldTransform().linear()
+         * static_cast<const Eigen::Vector3d&>(*this);
 }
 
 } // namespace dynamics

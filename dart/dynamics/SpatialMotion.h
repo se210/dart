@@ -34,39 +34,38 @@
  *   POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef DART_DYNAMICS_SPATIALVECTOR_H_
-#define DART_DYNAMICS_SPATIALVECTOR_H_
+#ifndef DART_DYNAMICS_SPATIALMOTION_H_
+#define DART_DYNAMICS_SPATIALMOTION_H_
 
-#include "dart/dynamics/VectorEntity.h"
+#include "dart/dynamics/EigenEntity.h"
 
 namespace dart {
 namespace dynamics {
 
-/// The SpatialVector class represents a 6D spatial vector
-class SpatialVector : public VectorEntity<double, 6>
+class SpatialMotion : public EigenEntity<Eigen::SpatialMotion>
 {
 public:
 
-  typedef VectorEntity<double, 6> Base;
-  typedef Base::Vector Vector;
-
-  VECTORENTITY_COPIERS( SpatialVector )
+  EIGENENTITY_COPIERS( SpatialMotion, Eigen::SpatialMotion )
 
   // Inherit the constructor
-  using Base::VectorEntity;
+  using EigenEntity<Eigen::SpatialMotion>::EigenEntity;
 
   /// Destructor
-  virtual ~SpatialVector();
+  virtual ~SpatialMotion();
 
 protected:
   // Documentation inherited
-  Eigen::Vector6d computeRelativeTo(const Frame *_referenceFrame) const override;
+  Eigen::SpatialMotion computeRelativeTo(const Frame *_referenceFrame) const override;
 
   // Documentation inherited
-  void computeWorldVector() const override;
+  Eigen::SpatialMotion computeRelativeToWorld() const override;
 };
+
+typedef SpatialMotion SpatialVelocity;
+typedef SpatialMotion SpatialAcceleration;
 
 } // namespace dynamics
 } // namespace dart
 
-#endif // DART_DYNAMICS_SPATIALVECTOR_H_
+#endif // DART_DYNAMICS_SPATIALMOTION_H_

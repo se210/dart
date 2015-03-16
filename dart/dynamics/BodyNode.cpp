@@ -647,7 +647,7 @@ const Eigen::Isometry3d& BodyNode::getRelativeTransform() const
 }
 
 //==============================================================================
-const Eigen::Vector6d& BodyNode::getRelativeSpatialVelocity() const
+const Eigen::SpatialVelocity& BodyNode::getRelativeSpatialVelocity() const
 {
   return mParentJoint->getLocalSpatialVelocity();
 }
@@ -698,19 +698,19 @@ Eigen::Vector3d BodyNode::getWorldAngularVelocity() const
 }
 
 //==============================================================================
-const Eigen::Vector6d& BodyNode::getRelativeSpatialAcceleration() const
+const Eigen::SpatialAcceleration& BodyNode::getRelativeSpatialAcceleration() const
 {
   return mParentJoint->getLocalSpatialAcceleration();
 }
 
 //==============================================================================
-const Eigen::Vector6d& BodyNode::getPrimaryRelativeAcceleration() const
+const Eigen::SpatialAcceleration& BodyNode::getPrimaryRelativeAcceleration() const
 {
   return mParentJoint->getLocalPrimaryAcceleration();
 }
 
 //==============================================================================
-const Eigen::Vector6d& BodyNode::getPartialAcceleration() const
+const Eigen::SpatialAcceleration& BodyNode::getPartialAcceleration() const
 {
   if(mIsPartialAccelerationDirty)
     updatePartialAcceleration();

@@ -42,16 +42,16 @@
 namespace dart {
 namespace dynamics {
 
-/// VECTORENTITY_COPIERS is a macro for easily creating copy constructors and
-/// assignment operators for classes that use VectorEntity.
+/// EIGENENTITY_COPIERS is a macro for easily creating copy constructors and
+/// assignment operators for classes that use EigenEntity.
 ///
 /// Note that because of const correctness, it is not possible for an Entity to
 /// set its parent frame to the parent frame of a  const Entity*, because a
 /// non-const Frame* needs to passed to the  setParentFrame() member function.
-/// So when copying another VectorEntity using the assignment operator, the
-/// parent Frame of the VectorEntity will remain the same and only the relative
+/// So when copying another EigenEntity using the assignment operator, the
+/// parent Frame of the EigenEntity will remain the same and only the relative
 /// vector will be altered. It will be altered in such a way that the World
-/// vector of this VectorEntity will match the World vector of the VectorEntity
+/// vector of this EigenEntity will match the World vector of the EigenEntity
 /// that is being copied. For example if you have:
 ///
 /// Point p1, p2;
@@ -63,13 +63,13 @@ namespace dynamics {
 /// different.
 ///
 /// The copy constructor works similarly. When the copy constructor is used, the
-/// newly constructed VectorEntity will have a World vector that matches the
-/// VectorEntity that was passed in, but its parent Frame will be based on the
+/// newly constructed EigenEntity will have a World vector that matches the
+/// EigenEntity that was passed in, but its parent Frame will be based on the
 /// second argument, which defaults to Frame::World().
 ///
-/// For more flexibility in copying the values of a VectorEntity, the copy()
+/// For more flexibility in copying the values of a EigenEntity, the copy()
 /// member function is offered. The copy() function allows you to specify which
-/// parameters you want to copy from one VectorEntity to another using bitwise
+/// parameters you want to copy from one EigenEntity to another using bitwise
 /// logic. The default is to copy everything. For example, to only copy the
 /// relative vector and parent frame:
 ///
@@ -77,26 +77,29 @@ namespace dynamics {
 /// // ... set the values of and the parent Frames of p1 and p2 ...
 /// p1.copy(p2, Point::RELATIVE_VECTOR | Point::PARENT_FRAME);
 ///
-/// Note that the VectorEntity that is passed in cannot be const, even though
+/// Note that the EigenEntity that is passed in cannot be const, even though
 /// no changes will be made to it in the process of copying from it.
-#define VECTORENTITY_COPIERS(T)                                                 \
+#define EIGENENTITY_COPIERS(T, BaseT)                                           \
+  typedef BaseT Base;                                                           \
   inline T ( const T & copy ## T , Frame* _refFrame = Frame::World())           \
     : Entity(_refFrame, copy ## T .getName(), false),                           \
-      VectorEntity(copy ## T .wrt(mParentFrame), _refFrame,                     \
-                   copy ## T .getName()+"_copy") { }                            \
+      EigenEntity(copy ## T .wrt(mParentFrame), _refFrame,                      \
+                  copy ## T .getName()+"_copy") { }                             \
                                                                                 \
   inline T & operator=( const T & copy ## T ) {                                 \
-    mRelativeVector = copy ## T .wrt(mParentFrame);                             \
+    static_cast<Base&>(*this) = copy ## T .wrt(mParentFrame);                   \
     return *this;                                                               \
   }                                                                             \
                                                                                 \
-  inline T & operator=( const Vector& copyVector ) {                            \
-    mRelativeVector = copyVector;                                               \
+  template <typename OtherDerived>                                              \
+  T & operator= (const Eigen::MatrixBase <OtherDerived>& other) {               \
+    this->Base::operator=(other);                                               \
     return *this;                                                               \
   }                                                                             \
                                                                                 \
   inline T & copy( T & copy ## T , int copyOptions = EVERYTHING) {              \
-    if(RELATIVE_VECTOR & copyOptions) *this = copy ## T .mRelativeVector;       \
+    if(RELATIVE_VECTOR & copyOptions)                                           \
+      static_cast<Base&>(*this) = static_cast<const Base&>( copy ## T );        \
     if(PARENT_FRAME & copyOptions) setParentFrame(copy ## T .getParentFrame()); \
     if(NAME & copyOptions) mName = copy ## T .getName();                        \
     if(VISUALIZATIONS & copyOptions) mVizShapes = copy ## T .mVizShapes;        \
@@ -105,18 +108,11 @@ namespace dynamics {
   }                                                                             \
 
 
-/// This class is designed to merge Eigen::Vector types and the Entity concept.
-/// It offers convenience functions for implicitly converting the Entity into a
-/// raw Eigen::Vector, and for interacting with vector components while still
-/// supporting auto-update features.
-template <typename Scalar, int Rows>
-class VectorEntity : public Detachable
+/// This class is designed to merge raw Eigen types with the Entity concept.
+template <typename Base>
+class EigenEntity : public Base, public Detachable
 {
 public:
-
-  typedef Eigen::Matrix<Scalar, Rows, 1> Vector;
-
-  friend class RefScalarType;
 
   /// Used with the copy() function to indicate which values should be copied
   /// over.
@@ -131,70 +127,38 @@ public:
     EVERYTHING      = 0xFF
   };
 
-  /// Class for intercepting user interaction with the components of a
-  /// VectorEntity's local vector. Conceptually similar to Eigen's Block
-  /// class except this notices when changes are made to vector components,
-  /// so it can support auto-updating.
-  class RefScalarType
+  // This constructor allows you to construct EigenEntity from Eigen expressions
+  template<typename OtherDerived>
+  EigenEntity(const Eigen::MatrixBase<OtherDerived>& other)
+    : Base(other),
+      Entity(Frame::World(), "", false),
+      Detachable(Frame::World(), "", false) { }
+
+  // This method allows you to assign Eigen expressions to EigenEntity
+  template<typename OtherDerived>
+  EigenEntity & operator= (const Eigen::MatrixBase <OtherDerived>& other)
   {
-  public:
-
-    /// Constructor
-    RefScalarType(VectorEntity<Scalar,Rows>* _vector,
-                  size_t _index)
-      : mVector(_vector),
-        mIndex(_index) { }
-
-    /// Implicit conversion to Scalar type
-    operator Scalar () const { return mVector->mRelativeVector[mIndex]; }
-
-    /// Constructor
-    RefScalarType& operator=(const Scalar& _value)
-    {
-      mVector->mRelativeVector[mIndex] = _value;
-      mVector->mNeedUpdate = true;
-    }
-
-  private:
-
-    /// Pointer to the VectorEntity that this Reference is associated with
-    VectorEntity<Scalar,Rows>* mVector;
-
-    /// Index of the component that this Reference is associated with
-    size_t mIndex;
-  };
+      this->Base::operator=(other);
+      return *this;
+  }
 
   /// Constructor
-  VectorEntity(const Vector& _relativeVector = Vector::Zero(),
+  EigenEntity(const Base& _relativeVector = Base::Zero(),
                   Frame* _refFrame = Frame::World(),
-                  const std::string& _name = "vector")
+                  const std::string& _name = "")
     : Entity(_refFrame, _name, false),
-      Detachable(_refFrame, _name, false),
-      mRelativeVector(_relativeVector),
-      mNeedUpdate(true) { }
-
-  virtual ~VectorEntity() { }
-
-  /// Access a component of the relative vector
-  RefScalarType operator[](size_t _index)
+      Detachable(_refFrame, _name, false)
   {
-    return RefScalarType(this, _index);
+    (*this) = _relativeVector;
   }
 
-  /// Access a component of the relative vector
-  const RefScalarType operator[](size_t _index) const
-  {
-    return RefScalarType(this, _index);
-  }
-
-  /// Implicit conversion to Vector type
-  operator const Vector& () const { return mRelativeVector; }
+  virtual ~EigenEntity() { }
 
   /// Get the value of this vector with respect to a reference frame
-  Vector wrt(const Frame* _referenceFrame) const
+  Base wrt(const Frame* _referenceFrame) const
   {
     if(_referenceFrame == mParentFrame)
-      return mRelativeVector;
+      return static_cast<Base>(*this);
     else if(_referenceFrame->isWorld())
       return wrtWorld();
 
@@ -202,40 +166,19 @@ public:
   }
 
   /// Get the value of this vector with respect to the World frame
-  const Vector& wrtWorld() const
+  Base wrtWorld() const
   {
-    if(mNeedUpdate)
-    {
-      computeWorldVector();
-      mNeedUpdate = false;
-    }
-
-    return mWorldVector;
-  }
-
-  /// Returns true iff an update is needed for the World vector
-  bool needsUpdate() const
-  {
-    return mNeedUpdate;
+    return computeRelativeToWorld();
   }
 
 protected:
 
   /// Returns the value of this vector with respect to an arbitrary reference
   /// Frame
-  virtual Vector computeRelativeTo(const Frame* _referenceFrame) const = 0;
+  virtual Base computeRelativeTo(const Frame* _referenceFrame) const = 0;
 
-  /// Computes the value of the world vector
-  virtual void computeWorldVector() const = 0;
-
-  /// Storage for the relative vector
-  Vector mRelativeVector;
-
-  /// Cache for the World vector
-  mutable Vector mWorldVector;
-
-  /// Flag for updates
-  mutable bool mNeedUpdate;
+  /// Computes the value of this vector with respect to the World
+  virtual Base computeRelativeToWorld() const = 0;
 };
 
 } // namespace dynamics

@@ -83,6 +83,118 @@ typedef Matrix<double, 6, 6> Matrix6d;
 typedef std::vector<Eigen::Vector3d> EIGEN_V_VEC3D;
 typedef std::vector<std::vector<Eigen::Vector3d > > EIGEN_VV_VEC3D;
 
+class SpatialVector : public Vector6d
+{
+public:
+  typedef Vector6d Base;
+
+  inline SpatialVector() { }
+
+  // This constructor allows you to construct SpatialVector from Eigen expressions
+  template<typename OtherDerived>
+  SpatialVector(const Eigen::MatrixBase<OtherDerived>& other)
+    : Base(other) { }
+
+  // This method allows you to assign Eigen expressions to SpatialVector
+  template<typename OtherDerived>
+  SpatialVector& operator= (const Eigen::MatrixBase <OtherDerived>& other)
+  {
+      this->Base::operator=(other);
+      return *this;
+  }
+
+  /// Construct a spatial vector from its angular and linear parts
+  template <typename Derived1, typename Derived2>
+  SpatialVector(const MatrixBase<Derived1>& _angular,
+                const MatrixBase<Derived2>& _linear)
+  {
+    angular() = _angular;
+    linear() = _linear;
+  }
+
+  /// Retrieve the top 3 components of the spatial vector
+  inline Eigen::Block<Vector6d, 3, 1> upper() { return head<3>(); }
+
+  /// Retrieve the top 3 components of the spatial vector
+  inline const Eigen::Block<const Vector6d, 3, 1> upper() const { return head<3>(); }
+
+  /// Retrieve the angular components of the spatial vector
+  inline Eigen::Block<Vector6d, 3, 1> angular() { return upper(); }
+
+  /// Retrieve the angular components of the spatial vector
+  inline const Eigen::Block<const Vector6d, 3, 1> angular() const { return upper(); }
+
+  /// Retrieve the bottom 3 components of the spatial vector
+  inline Eigen::Block<Vector6d, 3, 1> lower() { return tail<3>(); }
+
+  /// Retrieve the bottom 3 components of the spatial vector
+  inline const Eigen::Block<const Vector6d, 3, 1> lower() const { return tail<3>(); }
+
+  /// Retrieve the linear components of the spatial vector
+  inline Eigen::Block<Vector6d, 3, 1> linear() { return lower(); }
+
+  inline const Eigen::Block<const Vector6d, 3, 1> linear() const { return lower(); }
+};
+
+class SpatialForce : public SpatialVector
+{
+public:
+  typedef SpatialVector Base;
+
+  // Inherit constructor
+  using SpatialVector::SpatialVector;
+
+  // This method allows you to assign Eigen expressions to SpatialForce
+  template<typename OtherDerived>
+  SpatialForce& operator= (const Eigen::MatrixBase <OtherDerived>& other)
+  {
+      this->Base::operator=(other);
+      return *this;
+  }
+};
+
+class SpatialMotion : public SpatialVector
+{
+public:
+  typedef SpatialVector Base;
+
+  // Inherit constructor
+  using SpatialVector::SpatialVector;
+
+  // This method allows you to assign Eigen expressions to SpatialMotion
+  template<typename OtherDerived>
+  SpatialMotion& operator= (const Eigen::MatrixBase <OtherDerived>& other)
+  {
+      this->Base::operator=(other);
+      return *this;
+  }
+
+  inline SpatialMotion cross(const SpatialMotion& other)
+  {
+    //------------------------------------------------------------------------
+    // | m1  | x | m2  | = |       m1 x m2       |
+    // | m1o |   | m2o |   | m1 x m2o + m1o x m2 |
+    //------------------------------------------------------------------------
+    return SpatialMotion(
+                            upper().cross(other.upper()),
+           upper().cross(other.lower()) + lower().cross(other.upper()));
+  }
+
+  inline SpatialForce cross(const SpatialForce& other)
+  {
+    //------------------------------------------------------------------------
+    // | m  | x | fo | = | m x fo + mo x f |
+    // | mo |   | f  |   |      m x f      |
+    //------------------------------------------------------------------------
+    return SpatialForce(
+          upper().cross(other.upper()) + lower().cross(other.lower()),
+                           upper().cross(other.lower()));
+  }
+};
+
+typedef SpatialMotion SpatialVelocity;
+typedef SpatialMotion SpatialAcceleration;
+
 }
 
 namespace dart {

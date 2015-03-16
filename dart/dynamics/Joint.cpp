@@ -203,7 +203,7 @@ const Eigen::Isometry3d& Joint::getLocalTransform() const
 }
 
 //==============================================================================
-const Eigen::Vector6d& Joint::getLocalSpatialVelocity() const
+const Eigen::SpatialVelocity& Joint::getLocalSpatialVelocity() const
 {
   if(mNeedSpatialVelocityUpdate)
   {
@@ -215,7 +215,7 @@ const Eigen::Vector6d& Joint::getLocalSpatialVelocity() const
 }
 
 //==============================================================================
-const Eigen::Vector6d& Joint::getLocalSpatialAcceleration() const
+const Eigen::SpatialAcceleration& Joint::getLocalSpatialAcceleration() const
 {
   if(mNeedSpatialAccelerationUpdate)
   {
@@ -227,7 +227,7 @@ const Eigen::Vector6d& Joint::getLocalSpatialAcceleration() const
 }
 
 //==============================================================================
-const Eigen::Vector6d& Joint::getLocalPrimaryAcceleration() const
+const Eigen::SpatialAcceleration& Joint::getLocalPrimaryAcceleration() const
 {
   if(mNeedPrimaryAccelerationUpdate)
   {

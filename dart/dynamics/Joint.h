@@ -474,13 +474,13 @@ public:
   const Eigen::Isometry3d& getLocalTransform() const;
 
   /// Get the velocity from the parent BodyNode to the child BodyNode
-  const Eigen::Vector6d& getLocalSpatialVelocity() const;
+  const Eigen::SpatialVelocity& getLocalSpatialVelocity() const;
 
   /// Get the acceleration from the parent BodyNode to the child BodyNode
-  const Eigen::Vector6d& getLocalSpatialAcceleration() const;
+  const Eigen::SpatialAcceleration& getLocalSpatialAcceleration() const;
 
   /// Get the J * q_dd of this joint
-  const Eigen::Vector6d& getLocalPrimaryAcceleration() const;
+  const Eigen::SpatialAcceleration& getLocalPrimaryAcceleration() const;
 
   /// Get generalized Jacobian from parent body node to child body node
   /// w.r.t. local generalized coordinate
@@ -791,18 +791,18 @@ protected:
   /// velocity is expressed in child body Frame
   ///
   /// Do not use directly! Use getLocalSpatialVelocity() to access this
-  mutable Eigen::Vector6d mSpatialVelocity;
+  mutable Eigen::SpatialVelocity mSpatialVelocity;
 
   /// Relative spatial acceleration from parent BodyNode to child BodyNode where
   /// the acceleration is expressed in the child body Frame
   ///
   /// Do not use directly! Use getLocalSpatialAcceleration() to access this
-  mutable Eigen::Vector6d mSpatialAcceleration;
+  mutable Eigen::SpatialAcceleration mSpatialAcceleration;
 
   /// J * q_dd
   ///
   /// Do not use directly! Use getLocalPrimaryAcceleration() to access this
-  mutable Eigen::Vector6d mPrimaryAcceleration;
+  mutable Eigen::SpatialAcceleration mPrimaryAcceleration;
 
   /// True iff this joint's position has changed since the last call to
   /// getLocalTransform()

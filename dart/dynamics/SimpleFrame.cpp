@@ -46,8 +46,8 @@ SimpleFrame::SimpleFrame(Frame* _refFrame, const std::string& _name,
     Frame(_refFrame, _name),
     Detachable(_refFrame, _name, false),
     mRelativeTf(_relativeTransform),
-    mRelativeVelocity(Eigen::Vector6d::Zero()),
-    mRelativeAcceleration(Eigen::Vector6d::Zero())
+    mRelativeVelocity(Eigen::SpatialVelocity::Zero()),
+    mRelativeAcceleration(Eigen::SpatialAcceleration::Zero())
 {
 
 }
@@ -92,7 +92,7 @@ void SimpleFrame::setRelativeSpatialVelocity(
 }
 
 //==============================================================================
-const Eigen::Vector6d& SimpleFrame::getRelativeSpatialVelocity() const
+const Eigen::SpatialVelocity& SimpleFrame::getRelativeSpatialVelocity() const
 {
   return mRelativeVelocity;
 }
@@ -119,19 +119,19 @@ void SimpleFrame::setRelativeSpatialAcceleration(
 }
 
 //==============================================================================
-const Eigen::Vector6d& SimpleFrame::getRelativeSpatialAcceleration() const
+const Eigen::SpatialAcceleration& SimpleFrame::getRelativeSpatialAcceleration() const
 {
   return mRelativeAcceleration;
 }
 
 //==============================================================================
-const Eigen::Vector6d& SimpleFrame::getPrimaryRelativeAcceleration() const
+const Eigen::SpatialAcceleration& SimpleFrame::getPrimaryRelativeAcceleration() const
 {
   return mRelativeAcceleration;
 }
 
 //==============================================================================
-const Eigen::Vector6d& SimpleFrame::getPartialAcceleration() const
+const Eigen::SpatialAcceleration& SimpleFrame::getPartialAcceleration() const
 {
   mPartialAcceleration = math::ad(getSpatialVelocity(),
                                   getRelativeSpatialVelocity());

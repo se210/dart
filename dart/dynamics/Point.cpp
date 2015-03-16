@@ -54,11 +54,11 @@ Eigen::Vector3d Point::getLocation(const Frame *_withRespectTo) const
 //==============================================================================
 const Eigen::Vector3d& Point::getRelativeLocation() const
 {
-  return mRelativeVector;
+  return static_cast<const Eigen::Vector3d&>(*this);
 }
 
 //==============================================================================
-const Eigen::Vector3d& Point::getWorldLocation() const
+Eigen::Vector3d Point::getWorldLocation() const
 {
   return wrtWorld();
 }
@@ -67,71 +67,72 @@ const Eigen::Vector3d& Point::getWorldLocation() const
 Eigen::Vector3d Point::getLinearVelocity(const Frame* _relativeTo,
                                          const Frame* _inCoordinatesOf) const
 {
-  return getParentFrame()->getLinearVelocity(mRelativeVector, _relativeTo,
-                                             _inCoordinatesOf);
+  return getParentFrame()->getLinearVelocity(
+        static_cast<const Eigen::Vector3d&>(*this),
+        _relativeTo, _inCoordinatesOf);
 }
 
 //==============================================================================
 Eigen::Vector3d Point::getLinearVelocity(const Point* _relativeTo,
                                          const Frame* _inCoordinatesOf) const
 {
-  return getParentFrame()->getLinearVelocity(mRelativeVector, _relativeTo,
-                                             _inCoordinatesOf);
+  return getParentFrame()->getLinearVelocity(
+        static_cast<const Eigen::Vector3d&>(*this),
+        _relativeTo, _inCoordinatesOf);
 }
 
 //==============================================================================
 Eigen::Vector3d Point::getLinearAcceleration(const Frame* _relativeTo,
                                             const Frame* _inCoordinatesOf) const
 {
-  return getParentFrame()->getLinearAcceleration(mRelativeVector, _relativeTo,
-                                                 _inCoordinatesOf);
+  return getParentFrame()->getLinearAcceleration(
+        static_cast<const Eigen::Vector3d&>(*this),
+        _relativeTo, _inCoordinatesOf);
 }
 
 //==============================================================================
 Eigen::Vector3d Point::getLinearAcceleration(const Point* _relativeTo,
                                             const Frame* _inCoordinatesOf) const
 {
-  return getParentFrame()->getLinearAcceleration(mRelativeVector, _relativeTo,
-                                                 _inCoordinatesOf);
+  return getParentFrame()->getLinearAcceleration(
+        static_cast<const Eigen::Vector3d&>(*this),
+        _relativeTo, _inCoordinatesOf);
 }
 
 //==============================================================================
 Eigen::Vector6d Point::getSpatialVelocity(const Frame* _relativeTo,
                                           const Frame* _inCoordinatesOf) const
 {
-  return getParentFrame()->getSpatialVelocity(mRelativeVector, _relativeTo,
-                                              _inCoordinatesOf);
+  return getParentFrame()->getSpatialVelocity(
+        static_cast<const Eigen::Vector3d&>(*this),
+        _relativeTo, _inCoordinatesOf);
 }
 
 //==============================================================================
 Eigen::Vector6d Point::getSpatialVelocity(const Point* _relativeTo,
                                           const Frame* _inCoordinatesOf) const
 {
-  return getParentFrame()->getSpatialVelocity(mRelativeVector, _relativeTo,
-                                              _inCoordinatesOf);
+  return getParentFrame()->getSpatialVelocity(
+        static_cast<const Eigen::Vector3d&>(*this),
+        _relativeTo, _inCoordinatesOf);
 }
 
 //==============================================================================
 Eigen::Vector6d Point::getSpatialAcceleration(const Frame* _relativeTo,
                                             const Frame* _inCoordinatesOf) const
 {
-  return getParentFrame()->getSpatialAcceleration(mRelativeVector, _relativeTo,
-                                                  _inCoordinatesOf);
+  return getParentFrame()->getSpatialAcceleration(
+        static_cast<const Eigen::Vector3d&>(*this),
+        _relativeTo, _inCoordinatesOf);
 }
 
 //==============================================================================
 Eigen::Vector6d Point::getSpatialAcceleration(const Point* _relativeTo,
                                             const Frame* _inCoordinatesOf) const
 {
-  return getParentFrame()->getSpatialAcceleration(mRelativeVector, _relativeTo,
-                                                  _inCoordinatesOf);
-}
-
-//==============================================================================
-void Point::notifyTransformUpdate()
-{
-  Entity::notifyTransformUpdate();
-  mNeedUpdate = true;
+  return getParentFrame()->getSpatialAcceleration(
+        static_cast<const Eigen::Vector3d&>(*this),
+        _relativeTo, _inCoordinatesOf);
 }
 
 //==============================================================================
@@ -141,9 +142,10 @@ Eigen::Vector3d Point::computeRelativeTo(const Frame* _referenceFrame) const
 }
 
 //==============================================================================
-void Point::computeWorldVector() const
+Eigen::Vector3d Point::computeRelativeToWorld() const
 {
-  mWorldVector = getParentFrame()->getWorldTransform() * mRelativeVector;
+  return getParentFrame()->getWorldTransform()
+         * static_cast<const Eigen::Vector3d&>(*this);
 }
 
 } // namespace dynamics

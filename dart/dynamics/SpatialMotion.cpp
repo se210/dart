@@ -34,39 +34,32 @@
  *   POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef DART_DYNAMICS_FREEVECTOR_H_
-#define DART_DYNAMICS_FREEVECTOR_H_
-
-#include "dart/dynamics/EigenEntity.h"
+#include "dart/math/Geometry.h"
+#include "dart/dynamics/SpatialMotion.h"
 
 namespace dart {
 namespace dynamics {
 
-/// The FreeVector class represents a 3D vector which is not anchored to any
-/// point in space, but which has a well-defined frame of reference. The vector
-/// has a magnitude and direction, and the magnitude is preserved during
-/// coordinate transforms.
-class FreeVector : public EigenEntity<Eigen::Vector3d>
+//==============================================================================
+SpatialMotion::~SpatialMotion()
 {
-public:
+  // Do nothing
+}
 
-  EIGENENTITY_COPIERS( FreeVector, Eigen::Vector3d )
+//==============================================================================
+Eigen::SpatialMotion SpatialMotion::computeRelativeTo(
+    const Frame* _referenceFrame) const
+{
+  return math::AdInvT(_referenceFrame->getWorldTransform(),
+                      computeRelativeToWorld());
+}
 
-  // Inherit the constructor
-  using EigenEntity<Eigen::Vector3d>::EigenEntity;
-
-  /// Destructor
-  virtual ~FreeVector();
-
-protected:
-  // Documentation inherited
-  Eigen::Vector3d computeRelativeTo(const Frame* _referenceFrame) const override;
-
-  // Documentation inherited
-  Eigen::Vector3d computeRelativeToWorld() const override;
-};
+//==============================================================================
+Eigen::SpatialMotion SpatialMotion::computeRelativeToWorld() const
+{
+  return math::AdT(mParentFrame->getWorldTransform(),
+                   static_cast<const Eigen::Vector6d&>(*this));
+}
 
 } // namespace dynamics
 } // namespace dart
-
-#endif // DART_DYNAMICS_FREEVECTOR_H_

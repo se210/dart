@@ -307,16 +307,16 @@ public:
   const Eigen::Isometry3d& getRelativeTransform() const;
 
   // Documentation inherited
-  const Eigen::Vector6d& getRelativeSpatialVelocity() const;
+  const Eigen::SpatialVelocity& getRelativeSpatialVelocity() const;
 
   // Documentation inherited
-  const Eigen::Vector6d& getRelativeSpatialAcceleration() const override;
+  const Eigen::SpatialAcceleration& getRelativeSpatialAcceleration() const override;
 
   // Documentation inherited
-  const Eigen::Vector6d& getPrimaryRelativeAcceleration() const override;
+  const Eigen::SpatialAcceleration& getPrimaryRelativeAcceleration() const override;
 
   /// Return the partial acceleration of this body
-  const Eigen::Vector6d& getPartialAcceleration() const override;
+  const Eigen::SpatialAcceleration& getPartialAcceleration() const override;
 
   /// Return the generalized Jacobian targeting the origin of this BodyNode. The
   /// Jacobian is expressed in the Frame of this BodyNode.
@@ -1125,7 +1125,7 @@ protected:
   /// Partial spatial body acceleration due to parent joint's velocity
   ///
   /// Do not use directly! Use getPartialAcceleration() to access this quantity
-  mutable Eigen::Vector6d mPartialAcceleration;
+  mutable Eigen::SpatialAcceleration mPartialAcceleration;
   // TODO(JS): Rename with more informative name
 
   /// Is the partial acceleration vector dirty
