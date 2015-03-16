@@ -34,33 +34,26 @@
  *   POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef DART_DYNAMICS_SPATIALMOTION_H_
-#define DART_DYNAMICS_SPATIALMOTION_H_
-
-#include "dart/dynamics/EigenEntity.h"
+#include "dart/math/Geometry.h"
+#include "dart/dynamics/SpatialForce.h"
 
 namespace dart {
 namespace dynamics {
 
-class SpatialMotion : public EigenEntity<Eigen::SpatialMotion>
+//==============================================================================
+Eigen::SpatialForce SpatialForce::computeRelativeTo(
+    const Frame* _referenceFrame) const
 {
-public:
+  return math::dAdInvT(_referenceFrame->getWorldTransform(),
+                       computeRelativeToWorld());
+}
 
-  EIGENENTITY_SETUP( SpatialMotion, Eigen::SpatialMotion );
-
-protected:
-  // Documentation inherited
-  Eigen::SpatialMotion computeRelativeTo(
-      const Frame *_referenceFrame) const override;
-
-  // Documentation inherited
-  Eigen::SpatialMotion computeRelativeToWorld() const override;
-};
-
-typedef SpatialMotion SpatialVelocity;
-typedef SpatialMotion SpatialAcceleration;
+//==============================================================================
+Eigen::SpatialForce SpatialForce::computeRelativeToWorld() const
+{
+  return math::dAdT(mParentFrame->getWorldTransform(),
+                    static_cast<const Eigen::Vector6d&>(*this));
+}
 
 } // namespace dynamics
 } // namespace dart
-
-#endif // DART_DYNAMICS_SPATIALMOTION_H_

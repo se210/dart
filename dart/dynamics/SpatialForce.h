@@ -46,7 +46,14 @@ class SpatialForce : public EigenEntity<Eigen::SpatialForce>
 {
 public:
 
-  EIGENENTITY_COPIERS( SpatialForce, Eigen::SpatialForce )
+  EIGENENTITY_SETUP( SpatialForce, Eigen::SpatialForce );
+
+protected:
+  // Documentation inherited
+  Eigen::SpatialForce computeRelativeTo(const Frame *_referenceFrame) const override;
+
+  // Documentation inherited
+  Eigen::SpatialForce computeRelativeToWorld() const override;
 
 };
 

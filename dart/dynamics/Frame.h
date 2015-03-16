@@ -71,6 +71,9 @@ public:
   /// Destructor
   virtual ~Frame();
 
+  /// Returns a pointer to the World Frame. The World Frame is a special Frame
+  /// whose transform is always Identity and whose velocity/acceleration are
+  /// always exactly zero. Only one World Frame is allowed to exist.
   static Frame* World();
 
   //--------------------------------------------------------------------------
@@ -106,7 +109,8 @@ public:
 
   /// Get the spatial velocity of a fixed point in this Frame. The velocity is
   /// in coordinates of this Frame and is relative to the World Frame.
-  Eigen::SpatialVelocity getSpatialVelocity(const Eigen::Vector3d& _offset) const;
+  Eigen::SpatialVelocity getSpatialVelocity(
+      const Eigen::Vector3d& _offset) const;
 
   /// Get the spatial velocity of a fixed point in this Frame.
   Eigen::SpatialVelocity getSpatialVelocity(const Eigen::Vector3d& _offset,
@@ -184,18 +188,21 @@ public:
   /// Get the spatial acceleration of a fixed point in this Frame. The
   /// acceleration is in coordinates of this Frame and is relative to the World
   /// Frame.
-  Eigen::SpatialAcceleration getSpatialAcceleration(const Eigen::Vector3d& _offset) const;
+  Eigen::SpatialAcceleration getSpatialAcceleration(
+      const Eigen::Vector3d& _offset) const;
 
   /// Get the spatial acceleration of a fixed point in this Frame
-  Eigen::SpatialAcceleration getSpatialAcceleration(const Eigen::Vector3d& _offset,
-                                         const Frame* _relativeTo,
-                                         const Frame* _inCoordinatesOf) const;
+  Eigen::SpatialAcceleration getSpatialAcceleration(
+      const Eigen::Vector3d& _offset,
+      const Frame* _relativeTo,
+      const Frame* _inCoordinatesOf) const;
 
   /// Get the spatial acceleration of a fixed point in this Frame, relative to
   /// another Point.
-  Eigen::SpatialAcceleration getSpatialAcceleration(const Eigen::Vector3d& _offset,
-                                         const Point* _relativeTo,
-                                         const Frame* _inCoordinatesOf) const;
+  Eigen::SpatialAcceleration getSpatialAcceleration(
+      const Eigen::Vector3d& _offset,
+      const Point* _relativeTo,
+      const Frame* _inCoordinatesOf) const;
 
   /// Get the linear portion of classical acceleration of this Frame relative to
   /// some other Frame. It can be expressed in the coordinates of any Frame.
@@ -355,7 +362,7 @@ private:
   const Eigen::Isometry3d mRelativeTf;
 
   /// This is set to a Zero vector and never changes
-  const Eigen::Vector6d mZero;
+  const Eigen::SpatialMotion mZero;
 };
 
 } // namespace dynamics

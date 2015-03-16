@@ -48,13 +48,7 @@ class Point : public EigenEntity<Eigen::Vector3d>
 {
 public:
 
-  EIGENENTITY_COPIERS( Point, Eigen::Vector3d )
-
-  // Inherit the constructor
-  using EigenEntity<Eigen::Vector3d>::EigenEntity;
-
-  /// Destructor
-  virtual ~Point();
+  EIGENENTITY_SETUP( Point, Eigen::Vector3d );
 
   /// Get the location of this Point with respect to some Frame. Equivalent to
   /// wrt()

@@ -42,7 +42,7 @@
 namespace dart {
 namespace dynamics {
 
-/// EIGENENTITY_COPIERS is a macro for easily creating copy constructors and
+/// EIGENENTITY_SETUP is a macro for easily creating copy constructors and
 /// assignment operators for classes that use EigenEntity.
 ///
 /// Note that because of const correctness, it is not possible for an Entity to
@@ -79,12 +79,19 @@ namespace dynamics {
 ///
 /// Note that the EigenEntity that is passed in cannot be const, even though
 /// no changes will be made to it in the process of copying from it.
-#define EIGENENTITY_COPIERS(T, BaseT)                                           \
+#define EIGENENTITY_SETUP(T, BaseT)                                             \
   typedef BaseT Base;                                                           \
+                                                                                \
+  inline T (const Base& _relative ## T = Base::Zero(),                          \
+            Frame* _refFrame = Frame::World(),                                  \
+            const std::string& _name = #T )                                     \
+    : Entity(_refFrame, _name, false) {                                         \
+      static_cast<Base&>(*this) = _relative ## T ;                              \
+  }                                                                             \
   inline T ( const T & copy ## T , Frame* _refFrame = Frame::World())           \
-    : Entity(_refFrame, copy ## T .getName(), false),                           \
-      EigenEntity(copy ## T .wrt(mParentFrame), _refFrame,                      \
-                  copy ## T .getName()+"_copy") { }                             \
+    : Entity(_refFrame, copy ## T .getName()+"_copy", false) {                  \
+      static_cast<Base&>(*this) = copy ## T .wrt(mParentFrame);                 \
+  }                                                                             \
                                                                                 \
   inline T & operator=( const T & copy ## T ) {                                 \
     static_cast<Base&>(*this) = copy ## T .wrt(mParentFrame);                   \
@@ -106,6 +113,7 @@ namespace dynamics {
                                                                                 \
     return *this;                                                               \
   }                                                                             \
+  inline virtual ~ T () { }                                                     \
 
 
 /// This class is designed to merge raw Eigen types with the Entity concept.
@@ -131,8 +139,7 @@ public:
   template<typename OtherDerived>
   EigenEntity(const Eigen::MatrixBase<OtherDerived>& other)
     : Base(other),
-      Entity(Frame::World(), "", false),
-      Detachable(Frame::World(), "", false) { }
+      Entity(Frame::World(), "", false) { }
 
   // This method allows you to assign Eigen expressions to EigenEntity
   template<typename OtherDerived>
@@ -146,8 +153,7 @@ public:
   EigenEntity(const Base& _relativeVector = Base::Zero(),
                   Frame* _refFrame = Frame::World(),
                   const std::string& _name = "")
-    : Entity(_refFrame, _name, false),
-      Detachable(_refFrame, _name, false)
+    : Entity(_refFrame, _name, false)
   {
     (*this) = _relativeVector;
   }

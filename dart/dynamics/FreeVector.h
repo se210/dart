@@ -50,13 +50,7 @@ class FreeVector : public EigenEntity<Eigen::Vector3d>
 {
 public:
 
-  EIGENENTITY_COPIERS( FreeVector, Eigen::Vector3d )
-
-  // Inherit the constructor
-  using EigenEntity<Eigen::Vector3d>::EigenEntity;
-
-  /// Destructor
-  virtual ~FreeVector();
+  EIGENENTITY_SETUP( FreeVector, Eigen::Vector3d )
 
 protected:
   // Documentation inherited

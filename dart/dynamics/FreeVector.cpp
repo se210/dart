@@ -40,12 +40,6 @@ namespace dart {
 namespace dynamics {
 
 //==============================================================================
-FreeVector::~FreeVector()
-{
-  // Do nothing
-}
-
-//==============================================================================
 Eigen::Vector3d FreeVector::computeRelativeTo(
     const Frame* _referenceFrame) const
 {

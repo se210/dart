@@ -49,6 +49,9 @@
 #include "dart/math/Geometry.h"
 
 #include "dart/dynamics/Frame.h"
+#include "dart/dynamics/FreeVector.h"
+#include "dart/dynamics/SpatialForce.h"
+#include "dart/dynamics/Point.h"
 
 namespace dart {
 namespace renderer {
@@ -713,21 +716,41 @@ public:
                    bool _isForceLocal = false,
                    bool _isOffsetLocal = true);
 
+  /// Add an applied linear Cartesian force to this node
+  ///
+  /// A force is defined by a point of application and a force vector. The
+  /// FreeVector class inherently contains information about its Frame of
+  /// reference, as does the Point class. Be sure to set their values and their
+  /// parent Frames accordingly.
+  void addExtForce(const FreeVector& _force, const Point& _location);
+
   /// Set Applying linear Cartesian forces to this node.
   void setExtForce(const Eigen::Vector3d& _force,
                    const Eigen::Vector3d& _offset = Eigen::Vector3d::Zero(),
                    bool _isForceLocal = false,
                    bool _isOffsetLocal = true);
 
+  /// Set the applied linear Cartesian force of this node.
+  void setExtForce(const FreeVector& _force, const Point& _location);
+
   /// Add applying Cartesian torque to the node.
   ///
   /// The torque in local coordinates is accumulated in mExtTorqueBody.
   void addExtTorque(const Eigen::Vector3d& _torque, bool _isLocal = false);
 
+  /// Add an applied torque to this node
+  ///
+  /// The FreeVector class inherently contains information about its Frame of
+  /// reference, so be sure to set its values and its parent Frame accordingly.
+  void addExtTorque(const FreeVector& _torque);
+
   /// Set applying Cartesian torque to the node.
   ///
   /// The torque in local coordinates is accumulated in mExtTorqueBody.
   void setExtTorque(const Eigen::Vector3d& _torque, bool _isLocal = false);
+
+  /// Set the applied torque for this node
+  void setExtTorque(const FreeVector& _torque);
 
   /// Clean up structures that store external forces: mContacts, mFext,
   /// mExtForceBody and mExtTorqueBody.
@@ -1133,10 +1156,10 @@ protected:
 
   /// Transmitted wrench from parent to the bodynode expressed in body-fixed
   /// frame
-  Eigen::Vector6d mF;
+  Eigen::SpatialForce mF;
 
   /// External spatial force
-  Eigen::Vector6d mFext;
+  Eigen::SpatialForce mFext;
 
   /// Spatial gravity force
   Eigen::Vector6d mFgravity;

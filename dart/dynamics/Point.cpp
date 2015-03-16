@@ -40,12 +40,6 @@ namespace dart {
 namespace dynamics {
 
 //==============================================================================
-Point::~Point()
-{
-  // Do nothing
-}
-
-//==============================================================================
 Eigen::Vector3d Point::getLocation(const Frame *_withRespectTo) const
 {
   return wrt(_withRespectTo);

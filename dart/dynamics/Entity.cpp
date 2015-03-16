@@ -229,6 +229,12 @@ void Detachable::setParentFrame(Frame* _newParentFrame)
   changeParentFrame(_newParentFrame);
 }
 
+//==============================================================================
+Detachable::Detachable()
+  : Entity(nullptr, "", false)
+{
+
+}
 
 } // namespace dynamics
 } // namespace dart

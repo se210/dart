@@ -41,12 +41,6 @@ namespace dart {
 namespace dynamics {
 
 //==============================================================================
-SpatialMotion::~SpatialMotion()
-{
-  // Do nothing
-}
-
-//==============================================================================
 Eigen::SpatialMotion SpatialMotion::computeRelativeTo(
     const Frame* _referenceFrame) const
 {

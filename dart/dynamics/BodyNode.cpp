@@ -1116,28 +1116,34 @@ void BodyNode::addExtForce(const Eigen::Vector3d& _force,
 }
 
 //==============================================================================
+void BodyNode::addExtForce(const FreeVector& _force, const Point& _location)
+{
+  Eigen::Isometry3d T(Eigen::Isometry3d::Identity());
+  Eigen::SpatialForce F(Eigen::Vector6d::Zero());
+
+  T.translation() = _location.wrt(this);
+  F.linear() = _force.wrt(this);
+
+  mFext += math::dAdInvT(T, F);
+
+  if(mSkeleton)
+    mSkeleton->mIsExternalForcesDirty = true;
+}
+
+//==============================================================================
 void BodyNode::setExtForce(const Eigen::Vector3d& _force,
                            const Eigen::Vector3d& _offset,
                            bool _isForceLocal, bool _isOffsetLocal)
 {
-  Eigen::Isometry3d T = Eigen::Isometry3d::Identity();
-  Eigen::Vector6d F = Eigen::Vector6d::Zero();
-  const Eigen::Isometry3d& W = getWorldTransform();
+  mFext.setZero();
+  addExtForce(_force, _offset, _isForceLocal, _isOffsetLocal);
+}
 
-  if (_isOffsetLocal)
-    T.translation() = _offset;
-  else
-    T.translation() = W.inverse() * _offset;
-
-  if (_isForceLocal)
-    F.tail<3>() = _force;
-  else
-    F.tail<3>() = W.linear().transpose() * _force;
-
-  mFext = math::dAdInvT(T, F);
-
-  if(mSkeleton)
-    mSkeleton->mIsExternalForcesDirty = true;
+//==============================================================================
+void BodyNode::setExtForce(const FreeVector& _force, const Point& _location)
+{
+  mFext.setZero();
+  addExtForce(_force, _location);
 }
 
 //==============================================================================
@@ -1153,15 +1159,26 @@ void BodyNode::addExtTorque(const Eigen::Vector3d& _torque, bool _isLocal)
 }
 
 //==============================================================================
-void BodyNode::setExtTorque(const Eigen::Vector3d& _torque, bool _isLocal)
+void BodyNode::addExtTorque(const FreeVector& _torque)
 {
-  if (_isLocal)
-    mFext.head<3>() = _torque;
-  else
-    mFext.head<3>() = getWorldTransform().linear().transpose() * _torque;
+  mFext.angular() += _torque.wrt(this);
 
   if(mSkeleton)
     mSkeleton->mIsExternalForcesDirty = true;
+}
+
+//==============================================================================
+void BodyNode::setExtTorque(const Eigen::Vector3d& _torque, bool _isLocal)
+{
+  mFext.angular().setZero();
+  addExtTorque(_torque, _isLocal);
+}
+
+//==============================================================================
+void BodyNode::setExtTorque(const FreeVector& _torque)
+{
+  mFext.angular().setZero();
+  addExtTorque(_torque);
 }
 
 //==============================================================================

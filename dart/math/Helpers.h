@@ -55,6 +55,7 @@
 #include "dart/common/Console.h"
 #include "dart/common/Deprecated.h"
 #include "dart/math/MathTypes.h"
+#include "dart/math/Geometry.h"
 
 namespace dart {
 namespace math {
@@ -234,9 +235,19 @@ Eigen::Matrix<double, N, 1> randomVector(double _min, double _max)
 }
 
 template<int N>
-Eigen::Matrix<double, N, 1> randomVector(double _limit)
+Eigen::Matrix<double, N, 1> randomVector(double _limit = 100)
 {
   return randomVector<N>(-fabs(_limit), fabs(_limit));
+}
+
+inline Eigen::Isometry3d randomTransform(double translation_limit=100,
+                                          double rotation_limit=M_PI)
+{
+  Eigen::Isometry3d tf(Eigen::Isometry3d::Identity());
+  tf.translation() = randomVector<3>(translation_limit);
+  tf.linear() = math::eulerXYZToMatrix(randomVector<3>(rotation_limit));
+
+  return tf;
 }
 
 DEPRECATED(4.3)

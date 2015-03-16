@@ -344,7 +344,12 @@ TEST_F(JOINTS, POSITION_LIMIT)
   joint1->setPositionLowerLimit(0, -limit1);
   joint1->setPositionUpperLimit(0, limit1);
 
+#ifndef NDEBUG // Debug mode
+  double simTime = 0.2;
+#else
   double simTime = 2.0;
+#endif
+
   double timeStep = myWorld->getTimeStep();
   int nSteps = simTime / timeStep;
 

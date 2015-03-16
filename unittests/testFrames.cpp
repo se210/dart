@@ -1,4 +1,3 @@
-
 /*
  * Copyright (c) 2014, Georgia Tech Research Corporation
  * All rights reserved.
@@ -53,16 +52,9 @@ Eigen::Matrix<double,N,1> random_vec(double limit=100)
 
 void randomize_transform(Eigen::Isometry3d& tf,
                          double translation_limit=100,
-                         double rotation_limit=100)
+                         double rotation_limit=M_PI)
 {
-  Eigen::Vector3d r = random_vec<3>(translation_limit);
-  Eigen::Vector3d theta = random_vec<3>(rotation_limit);
-
-  tf.setIdentity();
-  tf.translate(r);
-
-  if(theta.norm()>0)
-    tf.rotate(Eigen::AngleAxisd(theta.norm(), theta.normalized()));
+  tf = randomTransform(translation_limit, rotation_limit);
 }
 
 void randomize_transforms(std::vector<Eigen::Isometry3d>& tfs)
@@ -724,6 +716,6 @@ int main(int argc, char* argv[])
 {
   srand(271828); // Seed with an arbitrary fixed integer. Don't seed with time,
                  // because it will produce different numbers between runs.
-  ::testing::InitGoogleTest(&argc, argv);
+  testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();
 }
