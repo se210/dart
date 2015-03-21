@@ -8,5 +8,5 @@ sudo make install
 
 # Install dart-example to see DART is installed correctly
 cd ~
-git clone git@github.com:dartsim/dart-examples.git
+git clone https://github.com/dartsim/dart-examples
 (cd dart-examples; mkdir build; cd build; cmake ..; make)
