@@ -8,6 +8,7 @@ sudo make install
 # Install dart-example to see DART is installed correctly
 cd ~
 git clone https://github.com/dartsim/dart-examples
+cd dart-examples
 if [ "$BUILD_CORE_ONLY" = "ON"  ]; then 'git checkout -b dart-core-4.3' ; fi
 if [ "$BUILD_CORE_ONLY" = "OFF" ]; then 'git checkout -b dart-4.3'      ; fi
-(cd dart-examples; mkdir build; cd build; cmake ..; make)
+(mkdir build; cd build; cmake ..; make)
