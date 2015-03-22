@@ -10,6 +10,7 @@ sudo make install
 cd ~
 git clone https://github.com/dartsim/dart-examples
 cd dart-examples
-if [ "$BUILD_CORE_ONLY" = "ON"  ]; then git checkout -b dart-core-4.3 ; fi
-if [ "$BUILD_CORE_ONLY" = "OFF" ]; then git checkout -b dart-4.3      ; fi
+git fetch
+if [ "$BUILD_CORE_ONLY" = "ON"  ]; then git checkout dart-core-4.3 ; fi
+if [ "$BUILD_CORE_ONLY" = "OFF" ]; then git checkout dart-4.3      ; fi
 (mkdir build; cd build; cmake ..; make)
