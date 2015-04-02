@@ -14,6 +14,7 @@ foreach(APPDIR
     rigidChain
     rigidCubes
     rigidLoop    
+    rigidShapes
     softBodies
     vehicle
     )
