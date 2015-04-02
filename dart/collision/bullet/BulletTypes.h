@@ -43,6 +43,13 @@
 namespace dart {
 namespace collision {
 
+/// Dummy structure to suppress warnings from bullet
+struct BulletWarningSuppression
+{
+  BulletWarningSuppression() : dummy(btInfinityMask) {}
+  int dummy;
+};
+
 /// @brief Convert Bullet vector3 type to Eigen vector3 type
 Eigen::Vector3d convertVector3(const btVector3& _vec);
 
