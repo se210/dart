@@ -45,24 +45,6 @@
 namespace dart {
 namespace collision {
 
-//struct btContactResultCB : public btCollisionWorld::ContactResultCallback {
-//  virtual btScalar addSingleResult(
-//      btManifoldPoint& cp,
-//      const btCollisionObjectWrapper* colObj0Wrap, int partId0, int index0,
-//      const btCollisionObjectWrapper* colObj1Wrap, int partId1, int index1) {
-//    Contact contactPair;
-//    contactPair.point = convertVector3(cp.getPositionWorldOnA());
-//    contactPair.normal = convertVector3(cp.m_normalWorldOnB);
-//    contactPair.penetrationDepth = -cp.m_distance1;
-
-//    mContacts.push_back(contactPair);
-
-//    return 0;
-//  }
-
-//  std::vector<Contact> mContacts;
-//};
-
 //==============================================================================
 struct CollisionFilter : public btOverlapFilterCallback
 {
@@ -108,23 +90,23 @@ struct CollisionFilter : public btOverlapFilterCallback
 //==============================================================================
 BulletCollisionDetector::BulletCollisionDetector() : CollisionDetector()
 {
-//  btVector3 worldAabbMin(-1000, -1000, -1000);
-//  btVector3 worldAabbMax(1000, 1000, 1000);
-//  btBroadphaseInterface* broadphasePairCache =
-//      new btAxisSweep3(worldAabbMin, worldAabbMax);
-  btBroadphaseInterface* broadphasePairCache = new btDbvtBroadphase();
-  btCollisionConfiguration* collisionConfiguration =
-      new btDefaultCollisionConfiguration();
-  btDispatcher* dispatcher = new btCollisionDispatcher(collisionConfiguration);
+  btCollisionConfiguration* collisionConfiguration
+      = new btDefaultCollisionConfiguration();
+  btDispatcher* dispatcher
+      = new btCollisionDispatcher(collisionConfiguration);
+  btBroadphaseInterface* broadphase
+      = new btDbvtBroadphase();
 
-  mBulletCollisionWorld = new btCollisionWorld(dispatcher,
-                                               broadphasePairCache,
-                                               collisionConfiguration);
+  mBulletCollisionWorld
+      = new btCollisionWorld(dispatcher, broadphase, collisionConfiguration);
 
-  btOverlapFilterCallback* filterCallback = new CollisionFilter();
-  btOverlappingPairCache* pairCache = mBulletCollisionWorld->getPairCache();
-  assert(pairCache != NULL);
-  pairCache->setOverlapFilterCallback(filterCallback);
+  // Setting up broadphase collision detection options
+  btDispatcherInfo& dispatchInfo = mBulletCollisionWorld->getDispatchInfo();
+  dispatchInfo.m_timeStep  = 0.001;
+  dispatchInfo.m_stepCount = 0;
+
+  btOverlapFilterCallback* filterCB = new CollisionFilter();
+  mBulletCollisionWorld->getPairCache()->setOverlapFilterCallback(filterCB);
 }
 
 //==============================================================================
@@ -151,31 +133,23 @@ CollisionNode* BulletCollisionDetector::createCollisionNode(
 }
 
 //==============================================================================
-bool BulletCollisionDetector::detectCollision(bool _checkAllCollisions,
-                                              bool _calculateContactPoints)
+bool BulletCollisionDetector::detectCollision(bool /*_checkAllCollisions*/,
+                                              bool /*_calculateContactPoints*/)
 {
-  // Update all the transformations of the collision nodes
-  for (size_t i = 0; i < mCollisionNodes.size(); ++i)
-    static_cast<BulletCollisionNode*>(
-        mCollisionNodes[i])->updateBulletCollisionObjects();
-
-  // Setting up broadphase collision detection options
-  btDispatcherInfo& dispatchInfo = mBulletCollisionWorld->getDispatchInfo();
-  dispatchInfo.m_timeStep  = 0.001;
-  dispatchInfo.m_stepCount = 0;
-  // dispatchInfo.m_debugDraw = getDebugDrawer();
-
-  // Collision detection
-  mBulletCollisionWorld->performDiscreteCollisionDetection();
-//  std::cout << "Number of collision objects: "
-//            << collWorld->getNumCollisionObjects() << std::endl;
-
   // Clear mContacts which is the list of old contacts
   clearAllContacts();
 
   // Set all the body nodes are not in colliding
   for (size_t i = 0; i < mCollisionNodes.size(); i++)
     mCollisionNodes[i]->getBodyNode()->setColliding(false);
+
+  // Update all the transformations of the collision nodes
+  for (size_t i = 0; i < mCollisionNodes.size(); ++i)
+    static_cast<BulletCollisionNode*>(
+        mCollisionNodes[i])->updateBulletCollisionObjects();
+
+  // Collision detection
+  mBulletCollisionWorld->performDiscreteCollisionDetection();
 
   // Add all the contacts to mContacts
   int numManifolds = mBulletCollisionWorld->getDispatcher()->getNumManifolds();
@@ -186,6 +160,8 @@ bool BulletCollisionDetector::detectCollision(bool _checkAllCollisions,
         = dispatcher->getManifoldByIndexInternal(i);
     const btCollisionObject* obA = contactManifold->getBody0();
     const btCollisionObject* obB = contactManifold->getBody1();
+    contactManifold->refreshContactPoints(obA->getWorldTransform(),
+                                          obB->getWorldTransform());
 
     BulletUserData* userDataA
         = static_cast<BulletUserData*>(obA->getUserPointer());
@@ -200,7 +176,7 @@ bool BulletCollisionDetector::detectCollision(bool _checkAllCollisions,
       Contact contactPair;
       contactPair.point            = convertVector3(cp.getPositionWorldOnA());
       contactPair.normal           = convertVector3(cp.m_normalWorldOnB);
-      contactPair.penetrationDepth = -cp.m_distance1;
+      contactPair.penetrationDepth = -cp.getDistance();
       contactPair.bodyNode1   = userDataA->btCollNode->getBodyNode();
       contactPair.bodyNode2   = userDataB->btCollNode->getBodyNode();
 

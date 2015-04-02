@@ -51,30 +51,30 @@ namespace collision {
 
 class BulletCollisionNode;
 
-/// @brief class BulletCollisionDetector
+/// BulletCollisionDetector
 class BulletCollisionDetector : public CollisionDetector
 {
 public:
-  /// @brief Constructor
+  /// Constructor
   BulletCollisionDetector();
 
-  /// @brief Destructor
+  /// Destructor
   virtual ~BulletCollisionDetector();
 
-  /// \copydoc CollisionDetector::createCollisionNode
+  // Documentation inherited
   virtual CollisionNode* createCollisionNode(dynamics::BodyNode* _bodyNode);
 
-  /// \copydoc CollisionDetector::detectCollision
+  // Documentation inherited
   virtual bool detectCollision(bool _checkAllCollisions,
                                bool _calculateContactPoints);
 
 protected:
   // TODO(JS): Not implemented yet.
-  /// \copydoc CollisionDetector::detectCollision
+  // Documentation inherited
   virtual bool detectCollision(CollisionNode* _node1, CollisionNode* _node2,
                                bool _calculateContactPoints);
 
-  /// @brief Bullet collision world
+  /// Bullet collision world
   btCollisionWorld* mBulletCollisionWorld;
 };
 

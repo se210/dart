@@ -40,6 +40,7 @@
 
 #include <assimp/scene.h>
 
+#include "dart/common/Console.h"
 #include "dart/collision/bullet/BulletTypes.h"
 #include "dart/dynamics/BodyNode.h"
 #include "dart/dynamics/BoxShape.h"
@@ -52,127 +53,113 @@ namespace dart {
 namespace collision {
 
 //==============================================================================
+void addBulletCollObj(dynamics::BodyNode* _bodyNode,
+                      dynamics::Shape* _shape,
+                      BulletCollisionNode* _collNode,
+                      std::vector<btCollisionObject*>& _btCollObjs,
+                      btCollisionShape* btCollShape)
+{
+  btCollisionObject* btCollObj = new btCollisionObject();
+  btCollObj->setCollisionShape(btCollShape);
+
+  BulletUserData* userData = new BulletUserData;
+  userData->bodyNode   = _bodyNode;
+  userData->shape      = _shape;
+  userData->btCollNode = _collNode;
+  btCollObj->setUserPointer(userData);
+
+  _btCollObjs.push_back(btCollObj);
+}
+
+//==============================================================================
 BulletCollisionNode::BulletCollisionNode(dynamics::BodyNode* _bodyNode)
   : CollisionNode(_bodyNode)
 {
+  using dynamics::Shape;
+  using dynamics::BoxShape;
+  using dynamics::EllipsoidShape;
+  using dynamics::CylinderShape;
+  using dynamics::PlaneShape;
+  using dynamics::MeshShape;
+
   for (size_t i = 0; i < _bodyNode->getNumCollisionShapes(); i++)
   {
-    dynamics::Shape* shape = _bodyNode->getCollisionShape(i);
+    Shape* shape = _bodyNode->getCollisionShape(i);
+    btCollisionShape* btCollShape;
+
     switch (shape->getShapeType())
     {
-      case dynamics::Shape::BOX:
+      case Shape::BOX:
       {
-        dynamics::BoxShape* box = static_cast<dynamics::BoxShape*>(shape);
+        BoxShape* box = static_cast<BoxShape*>(shape);
 
-        btBoxShape* btBox = new btBoxShape(btVector3(box->getSize()[0]*0.5,
-                                                     box->getSize()[1]*0.5,
-                                                     box->getSize()[2]*0.5));
-        btCollisionObject* btCollObj = new btCollisionObject();
-        btCollObj->setCollisionShape(btBox);
-        BulletUserData* userData = new BulletUserData;
-        userData->bodyNode = _bodyNode;
-        userData->shape = shape;
-        userData->btCollNode = this;
-        btCollObj->setUserPointer(userData);
-        mbtCollsionObjects.push_back(btCollObj);
-
+        btCollShape = new btBoxShape(convertVector3(0.5*box->getSize()));
         break;
       }
-      case dynamics::Shape::ELLIPSOID:
+      case Shape::ELLIPSOID:
       {
-        dynamics::EllipsoidShape* ellipsoid =
-            static_cast<dynamics::EllipsoidShape*>(shape);
+        EllipsoidShape* ellipsoid = static_cast<EllipsoidShape*>(shape);
 
         if (ellipsoid->isSphere())
         {
-          btSphereShape* btSphere = new btSphereShape(ellipsoid->getSize()[0] *
-                                                      0.5);
-          btCollisionObject* btCollObj = new btCollisionObject();
-          btCollObj->setCollisionShape(btSphere);
-          BulletUserData* userData = new BulletUserData;
-          userData->bodyNode = _bodyNode;
-          userData->shape = shape;
-          userData->btCollNode = this;
-          btCollObj->setUserPointer(userData);
-          mbtCollsionObjects.push_back(btCollObj);
+          const double radius = 0.5*ellipsoid->getSize()[0];
+          btCollShape = new btSphereShape(radius);
         }
         else
         {
-          // TODO(JS): Add mesh for ellipsoid
+          const btVector3 position(0, 0, 0);
+          const btScalar  radius = 1.0;
+          btMultiSphereShape* btEllisoid
+              = new btMultiSphereShape(&position, &radius, 1);
+          btEllisoid->setLocalScaling(convertVector3(0.5*ellipsoid->getSize()));
+          btCollShape = btEllisoid;
         }
 
         break;
       }
-      case dynamics::Shape::CYLINDER:
+      case Shape::CYLINDER:
       {
-        dynamics::CylinderShape* cylinder =
-            static_cast<dynamics::CylinderShape*>(shape);
+        CylinderShape* cylinder = static_cast<CylinderShape*>(shape);
 
-        btCylinderShapeZ* btCylinder =
-            new btCylinderShapeZ(btVector3(cylinder->getRadius(),
-                                           cylinder->getRadius(),
-                                           cylinder->getHeight() * 0.5));
-        btCollisionObject* btCollObj = new btCollisionObject();
-        btCollObj->setCollisionShape(btCylinder);
-        BulletUserData* userData = new BulletUserData;
-        userData->bodyNode = _bodyNode;
-        userData->shape = shape;
-        userData->btCollNode = this;
-        btCollObj->setUserPointer(userData);
-        mbtCollsionObjects.push_back(btCollObj);
-
+        btCollShape = new btCylinderShapeZ(btVector3(cylinder->getRadius(),
+                                                     cylinder->getRadius(),
+                                                     cylinder->getHeight() * 0.5));
         break;
       }
-      case dynamics::Shape::PLANE:
+      case Shape::PLANE:
       {
-        dynamics::PlaneShape* plane =
-            static_cast<dynamics::PlaneShape*>(shape);
+        PlaneShape* plane = static_cast<PlaneShape*>(shape);
 
         btScalar d = plane->getNormal().dot(plane->getPoint())
                    / plane->getNormal().squaredNorm();
 
-        btStaticPlaneShape* btStaticPlane =
-            new btStaticPlaneShape(convertVector3(plane->getNormal()), d);
-        btCollisionObject* btCollObj = new btCollisionObject();
-        btCollObj->setCollisionShape(btStaticPlane);
-        BulletUserData* userData = new BulletUserData;
-        userData->bodyNode = _bodyNode;
-        userData->shape = shape;
-        userData->btCollNode = this;
-        btCollObj->setUserPointer(userData);
-        mbtCollsionObjects.push_back(btCollObj);
+        btCollShape = new btStaticPlaneShape(convertVector3(plane->getNormal()),
+                                             d);
 
         break;
       }
-      case dynamics::Shape::MESH:
+      case Shape::MESH:
       {
-        dynamics::MeshShape* shapeMesh
-            = static_cast<dynamics::MeshShape*>(shape);
-        btConvexTriangleMeshShape* btMesh = _createMesh(shapeMesh->getScale(),
-                                                        shapeMesh->getMesh());
-        btCollisionObject* btCollObj = new btCollisionObject();
-
-        // Add user data
-        btCollObj->setCollisionShape(btMesh);
-        BulletUserData* userData = new BulletUserData;
-        userData->bodyNode   = _bodyNode;
-        userData->shape      = shape;
-        userData->btCollNode = this;
-        btCollObj->setUserPointer(userData);
-
-        //
-        mbtCollsionObjects.push_back(btCollObj);
+        MeshShape* shapeMesh = static_cast<MeshShape*>(shape);
+        btCollShape = _createMesh(shapeMesh->getScale(), shapeMesh->getMesh());
 
         break;
       }
       default:
       {
-        std::cout << "ERROR: Collision checking does not support "
-                  << _bodyNode->getName()
-                  << "'s Shape type\n";
+        dterr << "[BulletCollisionNode::BulletCollisionNode] Attempting to "
+              << "create unsupported shape type '" << shape->getShapeType()
+              << "' of '" << _bodyNode->getName() << "' body node."
+              <<  std::endl;
+        btCollShape = NULL;
         break;
       }
     }
+
+    if (NULL == btCollShape)
+      continue;
+
+    addBulletCollObj(_bodyNode, shape, this, mbtCollsionObjects, btCollShape);
   }
 }
 
