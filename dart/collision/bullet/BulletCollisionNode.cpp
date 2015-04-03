@@ -39,10 +39,12 @@
 #include <iostream>
 
 #include <assimp/scene.h>
+#include <BulletCollision/Gimpact/btGImpactCollisionAlgorithm.h>
 
 #include "dart/common/Console.h"
 #include "dart/collision/bullet/BulletTypes.h"
 #include "dart/dynamics/BodyNode.h"
+#include "dart/dynamics/Shape.h"
 #include "dart/dynamics/BoxShape.h"
 #include "dart/dynamics/EllipsoidShape.h"
 #include "dart/dynamics/CylinderShape.h"
@@ -69,6 +71,36 @@ void addBulletCollObj(dynamics::BodyNode* _bodyNode,
   btCollObj->setUserPointer(userData);
 
   _btCollObjs.push_back(btCollObj);
+}
+
+//==============================================================================
+btGImpactMeshShape* createMesh(const Eigen::Vector3d& _scale,
+                               const aiScene* _mesh)
+{
+  btTriangleMesh* btMesh = new btTriangleMesh();
+
+  for (size_t i = 0; i < _mesh->mNumMeshes; i++)
+  {
+    const aiMesh* aMesh = _mesh->mMeshes[i];
+    for (size_t j = 0; j < aMesh->mNumFaces; j++)
+    {
+      const aiFace aFace = aMesh->mFaces[j];
+      btVector3 vertices[3];
+      for (size_t k = 0; k < 3; k++)
+      {
+        const aiVector3D& vertex = aMesh->mVertices[aFace.mIndices[k]];
+        vertices[k] = btVector3(vertex.x * _scale[0],
+                                vertex.y * _scale[1],
+                                vertex.z * _scale[2]);
+      }
+      btMesh->addTriangle(vertices[0], vertices[1], vertices[2]);
+    }
+  }
+
+  btGImpactMeshShape* btMeshShape = new btGImpactMeshShape(btMesh);
+  btMeshShape->updateBound();
+
+  return btMeshShape;
 }
 
 //==============================================================================
@@ -141,7 +173,7 @@ BulletCollisionNode::BulletCollisionNode(dynamics::BodyNode* _bodyNode)
       case Shape::MESH:
       {
         MeshShape* shapeMesh = static_cast<MeshShape*>(shape);
-        btCollShape = _createMesh(shapeMesh->getScale(), shapeMesh->getMesh());
+        btCollShape = createMesh(shapeMesh->getScale(), shapeMesh->getMesh());
 
         break;
       }
@@ -192,35 +224,6 @@ int BulletCollisionNode::getNumBulletCollisionObjects() const
 btCollisionObject*BulletCollisionNode::getBulletCollisionObject(int _i)
 {
   return mbtCollsionObjects[_i];
-}
-
-//==============================================================================
-btConvexTriangleMeshShape* _createMesh(const Eigen::Vector3d& _scale,
-                                       const aiScene* _mesh)
-{
-  btTriangleMesh* btMesh = new btTriangleMesh();
-
-  for (unsigned int i = 0; i < _mesh->mNumMeshes; i++)
-  {
-    for (unsigned int j = 0; j < _mesh->mMeshes[i]->mNumFaces; j++)
-    {
-      btVector3 vertices[3];
-      for (unsigned int k = 0; k < 3; k++)
-      {
-        const aiVector3D& vertex = _mesh->mMeshes[i]->mVertices[
-                                   _mesh->mMeshes[i]->mFaces[j].mIndices[k]];
-        vertices[k] = btVector3(vertex.x * _scale[0],
-                                vertex.y * _scale[1],
-                                vertex.z * _scale[2]);
-      }
-      btMesh->addTriangle(vertices[0], vertices[1], vertices[2]);
-    }
-  }
-
-  btConvexTriangleMeshShape* btMeshShape =
-      new btConvexTriangleMeshShape(btMesh);
-
-  return btMeshShape;
 }
 
 }  // namespace collision

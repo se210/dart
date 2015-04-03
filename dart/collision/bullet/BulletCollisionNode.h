@@ -39,16 +39,14 @@
 
 #include <vector>
 
-#include <assimp/scene.h>
 #include <btBulletCollisionCommon.h>
-#include <Eigen/Dense>
 
-#include "dart/dynamics/Shape.h"
 #include "dart/collision/CollisionNode.h"
 
 namespace dart {
 namespace dynamics {
 class BodyNode;
+class Shape;
 }  // namespace dynamics
 }  // namespace dart
 
@@ -88,10 +86,6 @@ private:
     /// @brief Bullet collision objects
     std::vector<btCollisionObject*> mbtCollsionObjects;
 };
-
-/// @brief Create Bullet mesh from assimp3 mesh
-btConvexTriangleMeshShape* _createMesh(const Eigen::Vector3d& _scale,
-                                       const aiScene* _mesh);
 
 }  // namespace collision
 }  // namespace dart
