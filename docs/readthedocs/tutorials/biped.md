@@ -445,6 +445,7 @@ left foot, as well as the vertical distance of the four corners of the
 left foot from the ground:
 
 <img src="IKObjective.png" width="180">
+$ f(\mathbf{q}) =  \lVert \mathbf{c} - \mathbf{p} \rVert^2 + \sum_{i = 1}^{4} p_i^2 $
 
 where <b>c</b> and <b>p</b> indicate the projected center of mass and center of
 pressure on the ground, and *p<sub>i</sub>* indicates the vertical height of one
