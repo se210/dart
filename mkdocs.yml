@@ -10,6 +10,10 @@ copyright: ﻿Copyright (c) 2011-2015, Georgia Tech Research Corporation
 theme: readthedocs
 docs_dir: docs/readthedocs
 
+# Extentions
+markdown_extensions: [math]
+extra_javascript: ['https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS_HTML','mathjaxhelper.js']
+
 pages:
 - Home: 'index.md'
 - Tutorials:
