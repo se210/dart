@@ -39,9 +39,7 @@
 
 #include <vector>
 
-#include <assimp/scene.h>
 #include <btBulletCollisionCommon.h>
-#include <Eigen/Dense>
 
 #include "dart/dynamics/Shape.h"
 #include "dart/collision/CollisionNode.h"
@@ -58,40 +56,37 @@ namespace collision {
 class BulletCollisionNode;
 class BulletCollisionDetector;
 
-struct BulletUserData {
-    dynamics::BodyNode* bodyNode;
-    dynamics::ConstShapePtr shape;
-    BulletCollisionNode* btCollNode;
-    BulletCollisionDetector* btCollDet;
+struct BulletUserData
+{
+  dynamics::BodyNode* bodyNode;
+  dynamics::ConstShapePtr shape;
+  BulletCollisionNode* btCollNode;
+  BulletCollisionDetector* btCollDet;
 };
 
-/// @brief class BulletCollisionNode
+/// BulletCollisionNode
 class BulletCollisionNode : public CollisionNode
 {
 public:
-    /// @brief Constructor
-    explicit BulletCollisionNode(dynamics::BodyNode* _bodyNode);
+  /// Constructor
+  explicit BulletCollisionNode(dynamics::BodyNode* _bodyNode);
 
-    /// @brief Destructor
-    virtual ~BulletCollisionNode();
+  /// Destructor
+  virtual ~BulletCollisionNode();
 
-    /// @brief Update transformation of all the bullet collision objects.
-    void updateBulletCollisionObjects();
+  /// Update transformation of all the bullet collision objects.
+  void updateBulletCollisionObjects();
 
-    /// @brief Get number of bullet collision objects
-    int getNumBulletCollisionObjects() const;
+  /// Get number of bullet collision objects
+  int getNumBulletCollisionObjects() const;
 
-    /// @brief Get bullet collision object whose index is _i
-    btCollisionObject* getBulletCollisionObject(int _i);
+  /// Get bullet collision object whose index is _i
+  btCollisionObject* getBulletCollisionObject(int _i);
 
 private:
-    /// @brief Bullet collision objects
-    std::vector<btCollisionObject*> mbtCollsionObjects;
+  /// Bullet collision objects
+  std::vector<btCollisionObject*> mbtCollsionObjects;
 };
-
-/// @brief Create Bullet mesh from assimp3 mesh
-btConvexTriangleMeshShape* _createMesh(const Eigen::Vector3d& _scale,
-                                       const aiScene* _mesh);
 
 }  // namespace collision
 }  // namespace dart
