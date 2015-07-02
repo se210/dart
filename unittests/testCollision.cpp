@@ -44,14 +44,16 @@
 #include "dart/config.h"
 #include "dart/common/common.h"
 #include "dart/math/math.h"
+#include "dart/collision/collision.h"
 #include "dart/dynamics/dynamics.h"
-//#include "dart/collision/unc/UNCCollisionDetector.h"
 #include "dart/simulation/simulation.h"
 #include "dart/utils/utils.h"
 
+#include "TestHelpers.h"
+
 using namespace dart;
 using namespace math;
-//using namespace collision;
+using namespace collision;
 using namespace dynamics;
 using namespace simulation;
 using namespace utils;
@@ -584,6 +586,154 @@ TEST_F(COLLISION, CollisionOfPrescribedJoints)
     EXPECT_NEAR(joint6->getVelocity(0), 0.0, tol);
     EXPECT_NEAR(joint6->getAcceleration(0), 0.0, tol);
   }
+}
+
+void testAddRemoveSkeletons(const std::string& collisionDetectorType)
+{
+  // This test check if the specified collision detector runs without any
+  // segfaults while skeletons are added and removed.
+
+  // World
+  WorldPtr world(new World);
+
+  if (collisionDetectorType == "fcl_mesh")
+  {
+    world->getConstraintSolver()->setCollisionDetector(
+          new FCLMeshCollisionDetector());
+  }
+  else if (collisionDetectorType == "fcl")
+  {
+    world->getConstraintSolver()->setCollisionDetector(
+          new FCLCollisionDetector());
+  }
+  else if (collisionDetectorType == "dart")
+  {
+    world->getConstraintSolver()->setCollisionDetector(
+          new DARTCollisionDetector());
+  }
+#ifdef HAVE_BULLET_COLLISION
+  else if (collisionDetectorType == "bullet")
+  {
+    world->getConstraintSolver()->setCollisionDetector(
+          new BulletCollisionDetector());
+  }
+#endif
+  else
+  {
+    dtwarn << "Aborting test for collision detector type ["
+           << collisionDetectorType << "] since it's unsupported type."
+           << std::endl;
+    return;
+  }
+
+  //-------------------- Test World::removeSkeleton() ------------------------
+  SkeletonPtr skeleton1 = createThreeLinkRobot(Eigen::Vector3d(1.0, 1.0, 1.0),
+                                               DOF_X,
+                                               Eigen::Vector3d(1.0, 1.0, 1.0),
+                                               DOF_Y,
+                                               Eigen::Vector3d(1.0, 1.0, 1.0),
+                                               DOF_Z);
+
+  SkeletonPtr skeleton2 = createThreeLinkRobot(Eigen::Vector3d(1.0, 1.0, 1.0),
+                                               DOF_X,
+                                               Eigen::Vector3d(1.0, 1.0, 1.0),
+                                               DOF_Y,
+                                               Eigen::Vector3d(1.0, 1.0, 1.0),
+                                               DOF_Z);
+
+  SkeletonPtr skeleton3 = createThreeLinkRobot(Eigen::Vector3d(1.0, 1.0, 1.0),
+                                               DOF_X,
+                                               Eigen::Vector3d(1.0, 1.0, 1.0),
+                                               DOF_Y,
+                                               Eigen::Vector3d(1.0, 1.0, 1.0),
+                                               DOF_Z);
+
+  SkeletonPtr skeleton4 = createThreeLinkRobot(Eigen::Vector3d(1.0, 1.0, 1.0),
+                                               DOF_X,
+                                               Eigen::Vector3d(1.0, 1.0, 1.0),
+                                               DOF_Y,
+                                               Eigen::Vector3d(1.0, 1.0, 1.0),
+                                               DOF_Z);
+
+  int nSteps = 20;
+
+  // Empty world
+  for (int i = 0; i < nSteps; ++i)
+      world->step();
+
+  // Add skeleton1, skeleton2
+  world->addSkeleton(skeleton1);
+  world->addSkeleton(skeleton2);
+  EXPECT_TRUE(world->getNumSkeletons() == 2);
+  for (int i = 0; i < nSteps; ++i)
+      world->step();
+
+  std::string s1name = skeleton1->getName();
+  std::string s2name = skeleton2->getName();
+  EXPECT_TRUE(skeleton1 == world->getSkeleton(s1name));
+  EXPECT_TRUE(skeleton2 == world->getSkeleton(s2name));
+
+  // Remove skeleton2
+  world->removeSkeleton(skeleton2);
+  EXPECT_TRUE(world->getNumSkeletons() == 1);
+  for (int i = 0; i < nSteps; ++i)
+      world->step();
+
+  EXPECT_TRUE(skeleton1 == world->getSkeleton(s1name));
+  EXPECT_FALSE(skeleton2 == world->getSkeleton(s2name));
+  EXPECT_TRUE(world->getSkeleton(s2name) == nullptr);
+
+  // Add skeleton3, skeleton4
+  world->addSkeleton(skeleton3);
+  world->addSkeleton(skeleton4);
+  EXPECT_TRUE(world->getNumSkeletons() == 3);
+  for (int i = 0; i < nSteps; ++i)
+      world->step();
+
+  std::string s3name = skeleton3->getName();
+  std::string s4name = skeleton4->getName();
+
+  EXPECT_TRUE(s3name == s2name);
+  EXPECT_TRUE(skeleton3 == world->getSkeleton(s3name));
+  EXPECT_TRUE(skeleton4 == world->getSkeleton(s4name));
+
+  skeleton4->setName(skeleton1->getName());
+  EXPECT_FALSE(skeleton4->getName() == skeleton1->getName());
+
+  // Remove skeleton1
+  world->removeSkeleton(skeleton1);
+  EXPECT_TRUE(world->getNumSkeletons() == 2);
+  for (int i = 0; i < nSteps; ++i)
+      world->step();
+
+  EXPECT_FALSE(skeleton1 == world->getSkeleton(s1name));
+  EXPECT_TRUE(world->getSkeleton(s1name) == nullptr);
+
+  // Remove all the skeletons
+  world->removeAllSkeletons();
+  EXPECT_EQ((int)world->getNumSkeletons(), 0);
+  for (int i = 0; i < nSteps; ++i)
+      world->step();
+
+  EXPECT_FALSE(skeleton3 == world->getSkeleton(s3name));
+  EXPECT_TRUE(world->getSkeleton(s3name) == nullptr);
+
+  EXPECT_FALSE(skeleton4 == world->getSkeleton(s4name));
+  EXPECT_TRUE(world->getSkeleton(s4name) == nullptr);
+
+  // An error will be thrown here if Skeletons are not being removed correctly
+  skeleton1->setName(skeleton4->getName());
+}
+
+//==============================================================================
+TEST_F(COLLISION, AddRemoveSkeletons)
+{
+  testAddRemoveSkeletons("dart");
+  testAddRemoveSkeletons("fcl");
+  testAddRemoveSkeletons("fcl_mesh");
+#ifdef HAVE_BULLET_COLLISION
+  testAddRemoveSkeletons("bullet");
+#endif
 }
 
 //==============================================================================
