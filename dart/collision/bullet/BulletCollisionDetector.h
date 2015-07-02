@@ -62,7 +62,12 @@ public:
   virtual ~BulletCollisionDetector();
 
   // Documentation inherited
-  virtual CollisionNode* createCollisionNode(dynamics::BodyNode* _bodyNode);
+  virtual CollisionNode* createCollisionNode(dynamics::BodyNode* _bodyNode)
+  override;
+
+  // Documentation inherited
+  virtual void destroyCollisionNode(const dynamics::BodyNode* bodyNode)
+  override;
 
   // Documentation inherited
   virtual bool detectCollision(bool _checkAllCollisions,

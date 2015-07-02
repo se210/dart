@@ -106,13 +106,16 @@ void CollisionDetector::removeAllSkeletons()
   mSkeletons.clear();
 }
 
-void CollisionDetector::addCollisionSkeletonNode(dynamics::BodyNode* _bodyNode,
-                                                 bool _isRecursive) {
+//==============================================================================
+void CollisionDetector::addCollisionSkeletonNode(
+    dynamics::BodyNode* _bodyNode, bool _isRecursive)
+{
   assert(_bodyNode != nullptr && "Invalid body node.");
 
   // If this collision detector already has collision node for _bodyNode, then
   // we do nothing.
-  if (getCollisionNode(_bodyNode) != nullptr) {
+  if (getCollisionNode(_bodyNode) != nullptr)
+  {
     std::cout << "The collision detector already has a collision node for "
               << "body node [" << _bodyNode->getName() << "]." << std::endl;
     return;
@@ -132,24 +135,30 @@ void CollisionDetector::addCollisionSkeletonNode(dynamics::BodyNode* _bodyNode,
   mCollidablePairs.push_back(
         std::vector<bool>(mCollisionNodes.size() - 1, true));
 
-  if (_isRecursive) {
+  if (_isRecursive)
+  {
     for (size_t i = 0; i < _bodyNode->getNumChildBodyNodes(); i++)
       addCollisionSkeletonNode(_bodyNode->getChildBodyNode(i), true);
   }
 }
 
+//==============================================================================
 void CollisionDetector::removeCollisionSkeletonNode(
-    dynamics::BodyNode* _bodyNode, bool _isRecursive) {
+    dynamics::BodyNode* _bodyNode, bool _isRecursive)
+{
   assert(_bodyNode != nullptr && "Invalid body node.");
 
   // If a collision node is already created for _bodyNode, then we just return
   CollisionNode* collNode = getCollisionNode(_bodyNode);
-  if (collNode == nullptr) {
+  if (collNode == nullptr)
+  {
     std::cout << "The collision detector does not have any collision node "
               << "for body node [" << _bodyNode->getName() << "]."
               << std::endl;
     return;
   }
+
+  destroyCollisionNode(_bodyNode);
 
   // Update index of collision nodes.
   size_t iCollNode = collNode->getIndex();
@@ -168,7 +177,8 @@ void CollisionDetector::removeCollisionSkeletonNode(
   delete collNode;
 
   // Update mCollidablePairs
-  for (size_t i = iCollNode + 1; i < mCollidablePairs.size(); ++i) {
+  for (size_t i = iCollNode + 1; i < mCollidablePairs.size(); ++i)
+  {
     for (size_t j = 0; j < iCollNode; ++j)
       mCollidablePairs[i-1][j] = mCollidablePairs[i][j];
     for (size_t j = iCollNode + 1; j < mCollidablePairs[i].size(); ++j)
@@ -176,10 +186,18 @@ void CollisionDetector::removeCollisionSkeletonNode(
   }
   mCollidablePairs.pop_back();
 
-  if (_isRecursive) {
+  if (_isRecursive)
+  {
     for (size_t i = 0; i < _bodyNode->getNumChildBodyNodes(); i++)
       removeCollisionSkeletonNode(_bodyNode->getChildBodyNode(i), true);
   }
+}
+
+//==============================================================================
+void CollisionDetector::destroyCollisionNode(
+    const dynamics::BodyNode* /*bodyNode*/)
+{
+  // Do nothing
 }
 
 bool CollisionDetector::detectCollision(dynamics::BodyNode* _node1,
@@ -259,6 +277,16 @@ bool CollisionDetector::isCollidable(const CollisionNode* _node1,
 }
 
 //==============================================================================
+CollisionNode* CollisionDetector::getCollisionNode(
+    const dynamics::BodyNode* _bodyNode)
+{
+  if (mBodyCollisionMap.find(_bodyNode) != mBodyCollisionMap.end())
+    return mBodyCollisionMap[_bodyNode];
+  else
+    return nullptr;
+}
+
+//==============================================================================
 bool CollisionDetector::containSkeleton(const dynamics::SkeletonPtr& _skeleton)
 {
   for (std::vector<dynamics::SkeletonPtr>::const_iterator it = mSkeletons.begin();
@@ -335,14 +363,6 @@ bool CollisionDetector::isAdjacentBodies(
   }
 
   return false;
-}
-
-CollisionNode* CollisionDetector::getCollisionNode(
-    const dynamics::BodyNode* _bodyNode) {
-  if (mBodyCollisionMap.find(_bodyNode) != mBodyCollisionMap.end())
-    return mBodyCollisionMap[_bodyNode];
-  else
-    return nullptr;
 }
 
 }  // namespace collision

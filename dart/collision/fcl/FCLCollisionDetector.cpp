@@ -133,6 +133,28 @@ CollisionNode* FCLCollisionDetector::createCollisionNode(
 }
 
 //==============================================================================
+void FCLCollisionDetector::destroyCollisionNode(
+    const dynamics::BodyNode* bodyNode)
+{
+  if (nullptr == bodyNode)
+    return;
+
+  FCLCollisionNode* collNode
+      = static_cast<FCLCollisionNode*>(getCollisionNode(bodyNode));
+
+  if (nullptr == collNode)
+    return;
+
+  for (size_t i = 0; i < collNode->getNumCollisionObjects(); ++i)
+  {
+    fcl::CollisionObject* collObj = collNode->getCollisionObject(i);
+    mBroadPhaseAlg->unregisterObject(collObj);
+  }
+
+  mBroadPhaseAlg->setup();
+}
+
+//==============================================================================
 bool isClose(const Eigen::Vector3d& _point1, const Eigen::Vector3d& _point2)
 {
   if ((_point1 - _point2).squaredNorm() < 1e-12)

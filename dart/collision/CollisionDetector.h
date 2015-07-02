@@ -126,6 +126,8 @@ public:
   /// \brief
   virtual CollisionNode* createCollisionNode(dynamics::BodyNode* _bodyNode) = 0;
 
+  virtual void destroyCollisionNode(const dynamics::BodyNode* bodyNode);
+
   /// \brief
   void enablePair(dynamics::BodyNode* _node1, dynamics::BodyNode* _node2);
 
@@ -167,6 +169,9 @@ protected:
                                bool _calculateContactPoints) = 0;
 
   /// \brief
+  CollisionNode* getCollisionNode(const dynamics::BodyNode* _bodyNode);
+
+  /// \brief
   std::vector<Contact> mContacts;
 
   /// \brief
@@ -194,9 +199,6 @@ private:
   /// \brief Return true if _bodyNode1 and _bodyNode2 are adjacent bodies
   bool isAdjacentBodies(const dynamics::BodyNode* _bodyNode1,
                         const dynamics::BodyNode* _bodyNode2) const;
-
-  /// \brief
-  CollisionNode* getCollisionNode(const dynamics::BodyNode* _bodyNode);
 
   /// \brief
   std::map<const dynamics::BodyNode*, CollisionNode*> mBodyCollisionMap;

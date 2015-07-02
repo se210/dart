@@ -67,6 +67,10 @@ public:
   virtual CollisionNode* createCollisionNode(dynamics::BodyNode* _bodyNode)
   override;
 
+  // Documentation inherited
+  virtual void destroyCollisionNode(const dynamics::BodyNode* bodyNode)
+  override;
+
   /// Get collision node given FCL collision geometry
   CollisionNode* findCollisionNode(
       const fcl::CollisionGeometry* _fclCollGeom) const;
