@@ -148,6 +148,13 @@ TEST(Skeleton, Restructuring)
     SkeletonPtr skeleton = skeletons[index];
     SkeletonPtr original = skeleton->clone();
 
+    if (skeleton->getNumBodyNodes() == 0)
+    {
+      dtmsg << "Skipping test for skeleton [" << skeleton->getName() << "]"
+            << " since it doesn't have any BodyNodes." << std::endl;
+      continue;
+    }
+
     size_t maxNode = skeleton->getNumBodyNodes()-1;
     BodyNode* bn1 = skeleton->getBodyNode(floor(math::random(0, maxNode)));
     BodyNode* bn2 = skeleton->getBodyNode(ceil(math::random(0, maxNode)));
