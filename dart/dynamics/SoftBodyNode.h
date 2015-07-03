@@ -117,6 +117,12 @@ public:
   /// \brief
   virtual ~SoftBodyNode();
 
+  // Documentation inherited
+  virtual const std::string& getType() const override;
+
+  /// Get BodyNode type for this class
+  static const std::string& getStaticType();
+
   /// Set the Properties of this SoftBodyNode
   void setProperties(const Properties& _properties);
 

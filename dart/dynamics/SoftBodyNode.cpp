@@ -131,6 +131,19 @@ SoftBodyNode::~SoftBodyNode()
 }
 
 //==============================================================================
+const std::string& SoftBodyNode::getType() const
+{
+  return getStaticType();
+}
+
+//==============================================================================
+const std::string& SoftBodyNode::getStaticType()
+{
+  static const std::string name = "SoftBodyNode";
+  return name;
+}
+
+//==============================================================================
 void SoftBodyNode::removeSoftBodyShapes()
 {
   for(size_t i=0; i<mEntityP.mVizShapes.size(); )

@@ -154,6 +154,12 @@ SingleDofJoint& SingleDofJoint::operator=(const SingleDofJoint& _otherJoint)
 //==============================================================================
 size_t SingleDofJoint::getNumDofs() const
 {
+  return getStaticNumDofs();
+}
+
+//==============================================================================
+constexpr size_t SingleDofJoint::getStaticNumDofs()
+{
   return 1;
 }
 

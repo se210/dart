@@ -297,6 +297,13 @@ const std::string& MultiDofJoint<DOF>::getDofName(size_t _index) const
 template <size_t DOF>
 size_t MultiDofJoint<DOF>::getNumDofs() const
 {
+  return getStaticNumDofs();
+}
+
+//==============================================================================
+template <size_t DOF>
+constexpr size_t MultiDofJoint<DOF>::getStaticNumDofs()
+{
   return DOF;
 }
 

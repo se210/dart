@@ -108,6 +108,12 @@ const std::string& ZeroDofJoint::getDofName(size_t) const
 //==============================================================================
 size_t ZeroDofJoint::getNumDofs() const
 {
+  return getStaticNumDofs();
+}
+
+//==============================================================================
+constexpr size_t ZeroDofJoint::getStaticNumDofs()
+{
   return 0;
 }
 

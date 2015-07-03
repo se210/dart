@@ -182,6 +182,9 @@ public:
   // Documentation inherited
   size_t getNumDofs() const override;
 
+  /// Get number of dofs for this class
+  static constexpr size_t getStaticNumDofs();
+
   // Documentation inherited
   const std::string& setDofName(size_t _index,
                                 const std::string& _name,

@@ -34,53 +34,24 @@
  *   POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef DART_UTILS_SKEL_PARSER_H
-#define DART_UTILS_SKEL_PARSER_H
+#ifndef DART_UTILS_SKELPARSER_H_
+#define DART_UTILS_SKELPARSER_H_
 
 #include <cstddef>
 
-#include <Eigen/StdVector>
 #include <Eigen/Dense>
 // TinyXML-2 Library
 // http://www.grinninglizard.com/tinyxml2/index.html
 #include <tinyxml2.h>
 
-#include "dart/utils/Parser.h"
+#include "dart/common/Deprecated.h"
 #include "dart/dynamics/Skeleton.h"
 #include "dart/dynamics/BodyNode.h"
 #include "dart/dynamics/Joint.h"
-#include "dart/dynamics/SingleDofJoint.h"
-#include "dart/dynamics/MultiDofJoint.h"
 #include "dart/simulation/World.h"
+#include "dart/utils/Parser.h"
 
 namespace dart {
-
-namespace dynamics {
-class Joint;
-class WeldJoint;
-class PrismaticJoint;
-class RevoluteJoint;
-class ScrewJoint;
-class UniversalJoint;
-class BallJoint;
-class EulerXYZJoint;
-class EulerJoint;
-class TranslationalJoint;
-class PlanarJoint;
-class FreeJoint;
-class Marker;
-}
-
-namespace dynamics {
-class BodyNode;
-class Shape;
-class Skeleton;
-}
-
-namespace simulation {
-class World;
-}
-
 namespace utils {
 
 /// SkelParser
@@ -88,17 +59,20 @@ class SkelParser
 {
 public:
   /// Read World from skel file
-  static simulation::WorldPtr readWorld(const std::string& _filename);
+  static simulation::WorldPtr readWorld(const std::string& filename);
 
   /// Read World from an xml-formatted string
-  static simulation::WorldPtr readWorldXML(const std::string& _xmlString);
+  static simulation::WorldPtr readWorldXML(const std::string& xmlString);
 
   /// Read Skeleton from skel file
-  static dynamics::SkeletonPtr readSkeleton(const std::string& _filename);
+  static dynamics::SkeletonPtr readSkeleton(const std::string& filename);
+
+  //----------------------------------------------------------------------------
+  /// \{ \name Deprecated
+  //----------------------------------------------------------------------------
 
   typedef std::shared_ptr<dynamics::BodyNode::Properties> BodyPropPtr;
 
-  ///
   struct SkelBodyNode
   {
     BodyPropPtr properties;
@@ -106,10 +80,12 @@ public:
     std::string type;
     EIGEN_MAKE_ALIGNED_OPERATOR_NEW
   };
+
   // first: BodyNode name | second: BodyNode information
   typedef Eigen::aligned_map<std::string, SkelBodyNode> BodyMap;
 
   typedef std::shared_ptr<dynamics::Joint::Properties> JointPropPtr;
+
   struct SkelJoint
   {
     JointPropPtr properties;
@@ -131,32 +107,41 @@ public:
   // first: Child BodyNode name | second: Order that Joint appears in file
   typedef std::map<std::string, size_t> JointToIndex;
 
+  /// \}
+
 protected:
 
-  ///
+  //----------------------------------------------------------------------------
+  /// \{ \name Deprecated
+  //----------------------------------------------------------------------------
+
+  DEPRECATED(5.0)
   static simulation::WorldPtr readWorld(tinyxml2::XMLElement* _worldElement);
 
-  ///
+  DEPRECATED(5.0)
   static dart::dynamics::SkeletonPtr readSkeleton(
       tinyxml2::XMLElement* _skeletonElement);
 
-  ///
-  static SkelBodyNode readBodyNode(tinyxml2::XMLElement* _bodyElement,
+  DEPRECATED(5.0)
+  static SkelBodyNode readBodyNode(
+      tinyxml2::XMLElement* _bodyElement,
       const Eigen::Isometry3d& _skeletonFrame);
 
-  ///
-  static SkelBodyNode readSoftBodyNode(tinyxml2::XMLElement* _softBodyNodeElement,
+  DEPRECATED(5.0)
+  static SkelBodyNode readSoftBodyNode(
+      tinyxml2::XMLElement* _softBodyNodeElement,
       const Eigen::Isometry3d& _skeletonFrame);
 
-  ///
-  static dynamics::ShapePtr readShape(tinyxml2::XMLElement* _shapeElement,
-                                      const std::string& bodyName);
+  DEPRECATED(5.0)
+  static dynamics::ShapePtr readShape(
+      tinyxml2::XMLElement* _shapeElement, const std::string& bodyName);
 
   /// Read marker
+  DEPRECATED(5.0)
   static dynamics::Marker::Properties readMarker(
       tinyxml2::XMLElement* _markerElement);
 
-  ///
+  DEPRECATED(5.0)
   static void readJoint(
       tinyxml2::XMLElement* _jointElement,
       const BodyMap& _bodyNodes,
@@ -164,68 +149,70 @@ protected:
       IndexToJoint& _order,
       JointToIndex& _lookup);
 
-  ///
+  DEPRECATED(5.0)
   static JointPropPtr readRevoluteJoint(
       tinyxml2::XMLElement* _jointElement,
       SkelJoint& _joint,
       const std::string& _name);
 
-  ///
+  DEPRECATED(5.0)
   static JointPropPtr readPrismaticJoint(
       tinyxml2::XMLElement* _jointElement,
       SkelJoint& _joint,
       const std::string& _name);
 
-  ///
+  DEPRECATED(5.0)
   static JointPropPtr readScrewJoint(
       tinyxml2::XMLElement* _jointElement,
       SkelJoint& _joint,
       const std::string& _name);
 
-  ///
+  DEPRECATED(5.0)
   static JointPropPtr readUniversalJoint(
       tinyxml2::XMLElement* _universalJointElement,
       SkelJoint& _joint,
       const std::string& _name);
 
-  ///
+  DEPRECATED(5.0)
   static JointPropPtr readBallJoint(
       tinyxml2::XMLElement* _jointElement,
       SkelJoint& _joint,
       const std::string& _name);
 
-  ///
+  DEPRECATED(5.0)
   static JointPropPtr readEulerJoint(
       tinyxml2::XMLElement* _jointElement,
       SkelJoint& _joint,
       const std::string& _name);
 
-  ///
+  DEPRECATED(5.0)
   static JointPropPtr readTranslationalJoint(
       tinyxml2::XMLElement* _jointElement,
       SkelJoint& _joint,
       const std::string& _name);
 
-  ///
+  DEPRECATED(5.0)
   static JointPropPtr readPlanarJoint(
       tinyxml2::XMLElement* _jointElement,
       SkelJoint& _joint,
       const std::string& _name);
 
-  ///
+  DEPRECATED(5.0)
   static JointPropPtr readFreeJoint(
       tinyxml2::XMLElement* _jointElement,
       SkelJoint& _joint,
       const std::string& _name);
 
-  ///
+  DEPRECATED(5.0)
   static JointPropPtr readWeldJoint(
       tinyxml2::XMLElement* _jointElement,
       SkelJoint& _joint,
       const std::string& _name);
+
+    /// \}
 };
 
 } // namespace utils
 } // namespace dart
 
-#endif // #ifndef DART_UTILS_SKEL_PARSER_H
+#endif // #ifndef DART_UTILS_SKELPARSER_H_

@@ -1,13 +1,14 @@
 # Search all header and source files
 file(GLOB srcs "*.cpp")
 file(GLOB hdrs "*.h")
+file(GLOB detail "detail/*.h")
 
 # Add subdirectories
 add_subdirectory(sdf)
 add_subdirectory(urdf)
 
-set(dart_utils_hdrs ${hdrs} ${dart_utils_hdrs} PARENT_SCOPE)
-set(dart_utils_srcs ${srcs} ${dart_utils_srcs} PARENT_SCOPE)
+set(dart_utils_hdrs "${hdrs};${dart_utils_hdrs};${detail}" PARENT_SCOPE)
+set(dart_utils_srcs "${srcs};${dart_utils_srcs}" PARENT_SCOPE)
 
 # Library
 #dart_add_library(dart_utils ${srcs} ${hdrs})
@@ -42,6 +43,7 @@ configure_file(
 
 # Install
 install(
+  FILES ${detail}
   FILES ${hdrs} ${CMAKE_CURRENT_BINARY_DIR}/utils.h
   DESTINATION include/dart/utils
   COMPONENT headers

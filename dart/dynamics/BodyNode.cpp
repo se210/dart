@@ -159,6 +159,19 @@ BodyNode::~BodyNode()
 }
 
 //==============================================================================
+const std::string& BodyNode::getType() const
+{
+  return getStaticType();
+}
+
+//==============================================================================
+const std::string& BodyNode::getStaticType()
+{
+  static const std::string name = "BodyNode";
+  return name;
+}
+
+//==============================================================================
 void BodyNode::setProperties(const Properties& _properties)
 {
   Entity::setProperties(static_cast<const Entity::Properties&>(_properties));

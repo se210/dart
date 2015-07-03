@@ -140,6 +140,12 @@ public:
   /// Destructor
   virtual ~BodyNode();
 
+  /// Gets a string representing the BodyNode type
+  virtual const std::string& getType() const;
+
+  /// Get BodyNode type for this class
+  static const std::string& getStaticType();
+
   /// Set the Properties of this BodyNode
   void setProperties(const Properties& _properties);
 

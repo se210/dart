@@ -88,6 +88,9 @@ public:
   // Documentation inherited
   virtual size_t getNumDofs() const override;
 
+  /// Get number of dofs for this class
+  static constexpr size_t getStaticNumDofs();
+
   // Documentation inherited
   virtual size_t getIndexInSkeleton(size_t _index) const override;
 
