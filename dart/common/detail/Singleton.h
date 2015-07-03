@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Georgia Tech Research Corporation
+ * Copyright (c) 2015, Georgia Tech Research Corporation
  * All rights reserved.
  *
  * Author(s): Jeongseok Lee <jslee02@gmail.com>
@@ -34,38 +34,39 @@
  *   POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "dart/dart.h"
+#ifndef DART_COMMON_DETAIL_SINGLETON_H_
+#define DART_COMMON_DETAIL_SINGLETON_H_
 
-#include "apps/operationalSpaceControl/MyWindow.h"
+namespace dart {
+namespace common {
 
-int main(int argc, char* argv[])
+// Initialization of the singleton instance as nullptr pointer
+template <class T> T* Singleton<T>::mInstance = nullptr;
+
+//==============================================================================
+template <class T>
+T& Singleton<T>::getInstance()
 {
-  // create and initialize the world
-  dart::simulation::WorldPtr world(new dart::simulation::World);
-  assert(world != nullptr);
+  // http://stackoverflow.com/questions/1008019/c-singleton-design-pattern
 
-  // load skeletons
-  dart::dynamics::SkeletonPtr ground
-      = dart::utils::DartLoader::getInstance().parseSkeleton(
-          DART_DATA_PATH"urdf/KR5/ground.urdf");
-  dart::dynamics::SkeletonPtr robot
-      = dart::utils::DartLoader::getInstance().parseSkeleton(
-          DART_DATA_PATH"urdf/KR5/KR5 sixx R650.urdf");
-  world->addSkeleton(ground);
-  world->addSkeleton(robot);
+  // Guaranteed to be destroyed and instantiated on first use.
+  if (nullptr == mInstance)
+  {
+    static T instance;
+    mInstance = &instance;
+  }
 
-  // create and initialize the world
-  Eigen::Vector3d gravity(0.0, -9.81, 0.0);
-  world->setGravity(gravity);
-  world->setTimeStep(1.0/1000);
-
-  // create a window and link it to the world
-  MyWindow window(new Controller(robot, robot->getBodyNode("palm")));
-  window.setWorld(world);
-
-  glutInit(&argc, argv);
-  window.initWindow(640, 480, "Forward Simulation");
-  glutMainLoop();
-
-  return 0;
+  return *mInstance;
 }
+
+//==============================================================================
+template <class T>
+T* Singleton<T>::getInstancePtr()
+{
+  return &getInstance();
+}
+
+}  // namespace common
+}  // namespace dart
+
+#endif  // DART_COMMON_DETAIL_SINGLETON_H_

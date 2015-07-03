@@ -10,6 +10,7 @@
 #include <map>
 #include <string>
 
+#include "dart/common/Singleton.h"
 #include "dart/dynamics/Skeleton.h"
 #include "dart/dynamics/BodyNode.h"
 #include "dart/dynamics/Joint.h"
@@ -43,8 +44,10 @@ namespace utils {
 /**
  * @class DartLoader
  */
-class DartLoader {
-  
+class DartLoader : public common::Singleton<DartLoader>
+{
+    friend class common::Singleton<DartLoader>;
+
 public:
 
     /// Specify the directory of a ROS package. In your URDF files, you may see
@@ -84,6 +87,9 @@ public:
                                         const std::string& _urdfFileDirectory);
 
 private:
+
+    DartLoader() = default;
+    ~DartLoader() = default;
 
     typedef std::shared_ptr<dynamics::BodyNode::Properties> BodyPropPtr;
     typedef std::shared_ptr<dynamics::Joint::Properties> JointPropPtr;

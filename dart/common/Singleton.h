@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2015, Georgia Tech Research Corporation
+ * Copyright (c) 2015, Georgia Tech Research Corporation
  * All rights reserved.
  *
  * Author(s): Jeongseok Lee <jslee02@gmail.com>
@@ -34,38 +34,54 @@
  *   POSSIBILITY OF SUCH DAMAGE.
  */
 
-#include "dart/dart.h"
+#ifndef DART_COMMON_SINGLETON_H_
+#define DART_COMMON_SINGLETON_H_
 
-#include "apps/operationalSpaceControl/MyWindow.h"
+namespace dart {
+namespace common {
 
-int main(int argc, char* argv[])
+/// Singleton template class
+///
+/// \note This singleton is not thread safe. For use of thread safe singleton,
+/// use static initialization as:
+/// \code{.cpp}
+/// // Singletone class Engine
+/// class Engine : public Singleton<Engine> {};
+///
+/// // Call before main() and use theT only instead of calling getInstance()
+/// static T& theT = T::getInstance();
+/// \endcode
+template <class T>
+class Singleton
 {
-  // create and initialize the world
-  dart::simulation::WorldPtr world(new dart::simulation::World);
-  assert(world != nullptr);
+public:
+  /// Get reference of the singleton
+  static T& getInstance();
 
-  // load skeletons
-  dart::dynamics::SkeletonPtr ground
-      = dart::utils::DartLoader::getInstance().parseSkeleton(
-          DART_DATA_PATH"urdf/KR5/ground.urdf");
-  dart::dynamics::SkeletonPtr robot
-      = dart::utils::DartLoader::getInstance().parseSkeleton(
-          DART_DATA_PATH"urdf/KR5/KR5 sixx R650.urdf");
-  world->addSkeleton(ground);
-  world->addSkeleton(robot);
+  /// Get pointer of the singleton
+  static T* getInstancePtr();
 
-  // create and initialize the world
-  Eigen::Vector3d gravity(0.0, -9.81, 0.0);
-  world->setGravity(gravity);
-  world->setTimeStep(1.0/1000);
+protected:
+  /// Constructor
+  Singleton() = default;
 
-  // create a window and link it to the world
-  MyWindow window(new Controller(robot, robot->getBodyNode("palm")));
-  window.setWorld(world);
+  /// Destructor
+  virtual ~Singleton() = default;
 
-  glutInit(&argc, argv);
-  window.initWindow(640, 480, "Forward Simulation");
-  glutMainLoop();
+private:
+  /// Deleted copy constructor
+  Singleton(const T&) = delete;
 
-  return 0;
-}
+  /// Deleted assignment operator
+  const T& operator=(const T&) = delete;
+
+private:
+  static T* mInstance;
+};
+
+}  // namespace common
+}  // namespace dart
+
+#include "dart/common/detail/Singleton.h"
+
+#endif  // DART_COMMON_SINGLETON_H_
