@@ -37,63 +37,6 @@
 #ifndef DART_UTILS_SDF_SOFTSDFPARSER_H_
 #define DART_UTILS_SDF_SOFTSDFPARSER_H_
 
-#include <map>
-#include <string>
-#include <Eigen/Dense>
-#include <Eigen/StdVector>
-// TinyXML-2 Library
-// http://www.grinninglizard.com/tinyxml2/index.html
-#include <tinyxml2.h>
-
 #include "dart/utils/sdf/SdfParser.h"
-
-namespace dart {
-namespace dynamics {
-class Joint;
-class SoftBodyNode;
-class Skeleton;
-}  // namespace dynamics
-namespace simulation {
-class World;
-}  // namespace simulation
-}  // namespace dart
-
-namespace dart {
-namespace utils {
-
-class SoftSdfParser : public SdfParser
-{
-public:
-  /// \brief
-  static simulation::WorldPtr readSoftSdfFile(const std::string& _filename);
-
-  /// \brief
-  static dynamics::SkeletonPtr readSkeleton(
-      const std::string& _fileName);
-
-  static bool createSoftPair(dynamics::SkeletonPtr skeleton,
-                             dynamics::BodyNode* parent,
-                             const SDFJoint& newJoint,
-                             const SDFBodyNode& newBody);
-
-  /// \brief
-  static simulation::WorldPtr readWorld(
-      tinyxml2::XMLElement* _worldElement,
-      const std::string& _skelPath);
-
-  /// \brief
-  static dynamics::SkeletonPtr readSkeleton(
-      tinyxml2::XMLElement* _skeletonElement,
-      const std::string& _skelPath);
-
-  /// \brief
-  static SDFBodyNode readSoftBodyNode(
-      tinyxml2::XMLElement* _softBodyNodeElement,
-      const Eigen::Isometry3d& _skeletonFrame,
-      const std::string& _skelPath);
-};
-
-} // namespace utils
-} // namespace dart
 
 #endif // #ifndef DART_UTILS_SDF_SOFTSDFPARSER_H_

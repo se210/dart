@@ -1,13 +1,51 @@
+/*
+ * Copyright (c) 2014-2015, Georgia Tech Research Corporation
+ * All rights reserved.
+ *
+ * Author(s): Jeongseok Lee <jslee02@gmail.com>
+ *
+ * Georgia Tech Graphics Lab and Humanoid Robotics Lab
+ *
+ * Directed by Prof. C. Karen Liu and Prof. Mike Stilman
+ * <karenliu@cc.gatech.edu> <mstilman@cc.gatech.edu>
+ *
+ * This file is provided under the following "BSD-style" License:
+ *   Redistribution and use in source and binary forms, with or
+ *   without modification, are permitted provided that the following
+ *   conditions are met:
+ *   * Redistributions of source code must retain the above copyright
+ *     notice, this list of conditions and the following disclaimer.
+ *   * Redistributions in binary form must reproduce the above
+ *     copyright notice, this list of conditions and the following
+ *     disclaimer in the documentation and/or other materials provided
+ *     with the distribution.
+ *   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND
+ *   CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES,
+ *   INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
+ *   MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ *   DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR
+ *   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+ *   SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+ *   LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+ *   USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED
+ *   AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+ *   LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+ *   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ *   POSSIBILITY OF SUCH DAMAGE.
+ */
+
 #include <map>
 #include <iostream>
 #include <fstream>
 
 #include "dart/common/Console.h"
 #include "dart/dynamics/BodyNode.h"
+#include "dart/dynamics/SoftBodyNode.h"
 #include "dart/dynamics/BoxShape.h"
 #include "dart/dynamics/CylinderShape.h"
 #include "dart/dynamics/EllipsoidShape.h"
 #include "dart/dynamics/MeshShape.h"
+#include "dart/dynamics/SoftMeshShape.h"
 #include "dart/dynamics/WeldJoint.h"
 #include "dart/dynamics/PrismaticJoint.h"
 #include "dart/dynamics/RevoluteJoint.h"
@@ -25,27 +63,20 @@
 namespace dart {
 namespace utils {
 
+//==============================================================================
 simulation::WorldPtr SdfParser::readSdfFile(const std::string& _filename)
-{
-  return readSdfFile(_filename,
-    static_cast<simulation::WorldPtr (*)(tinyxml2::XMLElement*, const std::string&)>(&SdfParser::readWorld));
-}
-
-simulation::WorldPtr SdfParser::readSdfFile(const std::string& _filename,
-    std::function<simulation::WorldPtr (tinyxml2::XMLElement*,
-                                        const std::string&)> xmlReader)
 {
   //--------------------------------------------------------------------------
   // Load xml and create Document
   tinyxml2::XMLDocument _dartFile;
   try
   {
-      openXMLFile(_dartFile, _filename.c_str());
+    openXMLFile(_dartFile, _filename.c_str());
   }
   catch(std::exception const& e)
   {
-      std::cout << "LoadFile Fails: " << e.what() << std::endl;
-      return nullptr;
+    std::cout << "LoadFile Fails: " << e.what() << std::endl;
+    return nullptr;
   }
 
   //--------------------------------------------------------------------------
@@ -53,7 +84,7 @@ simulation::WorldPtr SdfParser::readSdfFile(const std::string& _filename,
   tinyxml2::XMLElement* sdfElement = nullptr;
   sdfElement = _dartFile.FirstChildElement("sdf");
   if (sdfElement == nullptr)
-      return nullptr;
+    return nullptr;
 
   //--------------------------------------------------------------------------
   // version attribute
@@ -82,31 +113,31 @@ simulation::WorldPtr SdfParser::readSdfFile(const std::string& _filename,
   std::replace(unixFileName.begin(), unixFileName.end(), '\\' , '/' );
   std::string skelPath = unixFileName.substr(0, unixFileName.rfind("/") + 1);
 
-  return xmlReader(worldElement, skelPath);
+  return readWorld(worldElement, skelPath);
 }
 
-dynamics::SkeletonPtr SdfParser::readSkeleton(const std::string& _fileName)
+//==============================================================================
+simulation::WorldPtr SdfParser::readSdfFile(const std::string& _filename,
+    std::function<simulation::WorldPtr (tinyxml2::XMLElement*,
+                                        const std::string&)>)
 {
-  return readSkeleton(_fileName,
-      static_cast<dynamics::SkeletonPtr (*)(tinyxml2::XMLElement*, const std::string&)>(&SdfParser::readSkeleton));
+  return readSdfFile(_filename);
 }
 
-dynamics::SkeletonPtr SdfParser::readSkeleton(
-    const std::string& _filename,
-    std::function<dynamics::SkeletonPtr(tinyxml2::XMLElement*,
-                                        const std::string&)> xmlReader)
+//==============================================================================
+dynamics::SkeletonPtr SdfParser::readSkeleton(const std::string& _filename)
 {
   //--------------------------------------------------------------------------
   // Load xml and create Document
   tinyxml2::XMLDocument _dartFile;
   try
   {
-      openXMLFile(_dartFile, _filename.c_str());
+    openXMLFile(_dartFile, _filename.c_str());
   }
   catch(std::exception const& e)
   {
-      std::cout << "LoadFile Fails: " << e.what() << std::endl;
-      return nullptr;
+    std::cout << "LoadFile Fails: " << e.what() << std::endl;
+    return nullptr;
   }
 
   //--------------------------------------------------------------------------
@@ -129,6 +160,7 @@ dynamics::SkeletonPtr SdfParser::readSkeleton(
           << std::endl;
     return nullptr;
   }
+
   //--------------------------------------------------------------------------
   // Load skeleton
   tinyxml2::XMLElement* skelElement = nullptr;
@@ -142,24 +174,23 @@ dynamics::SkeletonPtr SdfParser::readSkeleton(
   std::replace(unixFileName.begin(), unixFileName.end(), '\\' , '/' );
   std::string skelPath = unixFileName.substr(0, unixFileName.rfind("/") + 1);
 
-  dynamics::SkeletonPtr newSkeleton = xmlReader(skelElement, skelPath);
+  dynamics::SkeletonPtr newSkeleton = readSkeleton(skelElement, skelPath);
 
   return newSkeleton;
 }
 
-simulation::WorldPtr SdfParser::readWorld(
-    tinyxml2::XMLElement* _worldElement,
-    const std::string& _skelPath)
+//==============================================================================
+dynamics::SkeletonPtr SdfParser::readSkeleton(
+    const std::string& _filename,
+    std::function<dynamics::SkeletonPtr(tinyxml2::XMLElement*,
+                                        const std::string&)> xmlReader)
 {
-  return readWorld(_worldElement, _skelPath,
-      static_cast<dynamics::SkeletonPtr (*)(tinyxml2::XMLElement*, const std::string&)>(&SdfParser::readSkeleton));
+  return readSkeleton(_filename);
 }
 
+//==============================================================================
 simulation::WorldPtr SdfParser::readWorld(
-    tinyxml2::XMLElement* _worldElement,
-    const std::string& _skelPath,
-    std::function<dynamics::SkeletonPtr(tinyxml2::XMLElement*,
-                                        const std::string&)> skeletonReader)
+    tinyxml2::XMLElement* _worldElement, const std::string& _skelPath)
 {
   assert(_worldElement != nullptr);
 
@@ -185,7 +216,7 @@ simulation::WorldPtr SdfParser::readWorld(
   while (skeletonElements.next())
   {
     dynamics::SkeletonPtr newSkeleton
-            = skeletonReader(skeletonElements.get(), _skelPath);
+        = readSkeleton(skeletonElements.get(), _skelPath);
 
     newWorld->addSkeleton(newSkeleton);
   }
@@ -193,6 +224,17 @@ simulation::WorldPtr SdfParser::readWorld(
   return newWorld;
 }
 
+//==============================================================================
+simulation::WorldPtr SdfParser::readWorld(
+    tinyxml2::XMLElement* _worldElement,
+    const std::string& _skelPath,
+    std::function<dynamics::SkeletonPtr(tinyxml2::XMLElement*,
+                                        const std::string&)>)
+{
+  return readWorld(_worldElement, _skelPath);
+}
+
+//==============================================================================
 void SdfParser::readPhysics(tinyxml2::XMLElement* _physicsElement,
                  simulation::WorldPtr _world)
 {
@@ -221,25 +263,9 @@ void SdfParser::readPhysics(tinyxml2::XMLElement* _physicsElement,
     }
 }
 
+//==============================================================================
 dynamics::SkeletonPtr SdfParser::readSkeleton(
-    tinyxml2::XMLElement* _skeletonElement,
-    const std::string& _skelPath)
-{
-  return readSkeleton(_skeletonElement, _skelPath, &readBodyNode, &createPair);
-}
-
-dynamics::SkeletonPtr SdfParser::readSkeleton(
-    tinyxml2::XMLElement* _skeletonElement,
-    const std::string& _skelPath,
-
-    std::function<SDFBodyNode (tinyxml2::XMLElement*,
-                   const Eigen::Isometry3d&,
-                   const std::string&)> bodyReader,
-
-    std::function<bool(dynamics::SkeletonPtr,
-                       dynamics::BodyNode*,
-                       const SDFJoint&,
-                       const SDFBodyNode&)> pairCreator)
+    tinyxml2::XMLElement* _skeletonElement, const std::string& _skelPath)
 {
   assert(_skeletonElement != nullptr);
 
@@ -250,7 +276,7 @@ dynamics::SkeletonPtr SdfParser::readSkeleton(
   //--------------------------------------------------------------------------
   // Bodies
   BodyMap sdfBodyNodes = readAllBodyNodes(_skeletonElement, _skelPath,
-                                          skeletonFrame, bodyReader);
+                                          skeletonFrame, &readSoftBodyNode);
 
   //--------------------------------------------------------------------------
   // Joints
@@ -282,13 +308,13 @@ dynamics::SkeletonPtr SdfParser::readSkeleton(
             dynamics::Joint::Properties("root", rootNode->second.initTransform));
       rootJoint.type = "free";
 
-      if(!pairCreator(newSkeleton, nullptr, rootJoint, rootNode->second))
+      if(!createPair(newSkeleton, nullptr, rootJoint, rootNode->second))
         break;
 
       continue;
     }
 
-    if(!pairCreator(newSkeleton, parent, it->second, child->second))
+    if(!createPair(newSkeleton, parent, it->second, child->second))
       break;
 
     sdfJoints.erase(it);
@@ -298,13 +324,41 @@ dynamics::SkeletonPtr SdfParser::readSkeleton(
   return newSkeleton;
 }
 
-bool SdfParser::createPair(dynamics::SkeletonPtr skeleton,
-                           dynamics::BodyNode* parent,
-                           const SDFJoint& newJoint, const SDFBodyNode& newBody)
+//==============================================================================
+dynamics::SkeletonPtr SdfParser::readSkeleton(
+    tinyxml2::XMLElement* _skeletonElement,
+    const std::string& _skelPath,
+    std::function<SDFBodyNode (tinyxml2::XMLElement*,
+                   const Eigen::Isometry3d&,
+                   const std::string&)>,
+    std::function<bool(dynamics::SkeletonPtr,
+                       dynamics::BodyNode*,
+                       const SDFJoint&,
+                       const SDFBodyNode&)>)
 {
-  std::pair<dynamics::Joint*,dynamics::BodyNode*> pair =
-      createJointAndNodePair<dynamics::BodyNode>(
-        skeleton, parent, newJoint, newBody);
+  return readSkeleton(_skeletonElement, _skelPath);
+}
+
+//==============================================================================
+bool SdfParser::createPair(
+    dynamics::SkeletonPtr skeleton,
+    dynamics::BodyNode* parent,
+    const SDFJoint& newJoint,
+    const SDFBodyNode& newBody)
+{
+  std::pair<dynamics::Joint*, dynamics::BodyNode*> pair;
+  if(newBody.type.empty())
+    pair = createJointAndNodePair<dynamics::BodyNode>(
+          skeleton, parent, newJoint, newBody);
+  else if(std::string("soft") == newBody.type)
+    pair = createJointAndNodePair<dynamics::SoftBodyNode>(
+          skeleton, parent, newJoint, newBody);
+  else
+  {
+    dterr << "[SoftSdfParser::createPair] Unsupported Link type: "
+          << newBody.type << "\n";
+    return false;
+  }
 
   if(!pair.first || !pair.second)
     return false;
@@ -312,6 +366,7 @@ bool SdfParser::createPair(dynamics::SkeletonPtr skeleton,
   return true;
 }
 
+//==============================================================================
 SdfParser::NextResult SdfParser::getNextJointAndNodePair(
     JointMap::iterator& it,
     BodyMap::const_iterator& child,
@@ -552,6 +607,111 @@ SdfParser::SDFBodyNode SdfParser::readBodyNode(
   sdfBodyNode.properties =
       Eigen::make_aligned_shared<dynamics::BodyNode::Properties>(properties);
   sdfBodyNode.initTransform = initTransform;
+
+  return sdfBodyNode;
+}
+
+SdfParser::SDFBodyNode SdfParser::readSoftBodyNode(
+    tinyxml2::XMLElement* _softBodyNodeElement,
+    const Eigen::Isometry3d& _skeletonFrame,
+    const std::string& _skelPath)
+{
+  //---------------------------------- Note ------------------------------------
+  // SoftBodyNode is created if _softBodyNodeElement has <soft_shape>.
+  // Otherwise, BodyNode is created.
+
+  //----------------------------------------------------------------------------
+  assert(_softBodyNodeElement != nullptr);
+
+  // If _softBodyNodeElement has no <soft_shape>, return rigid body node
+  if (!hasElement(_softBodyNodeElement, "soft_shape"))
+  {
+    return SdfParser::readBodyNode(
+          _softBodyNodeElement, _skeletonFrame, _skelPath);
+  }
+
+  SDFBodyNode standardSDF =
+      SdfParser::readBodyNode(_softBodyNodeElement, _skeletonFrame, _skelPath);
+
+  BodyPropPtr standardProperties = standardSDF.properties;
+
+  dynamics::SoftBodyNode::UniqueProperties softProperties;
+
+  //----------------------------------------------------------------------------
+  // Soft properties
+  if (hasElement(_softBodyNodeElement, "soft_shape"))
+  {
+    tinyxml2::XMLElement* softShapeEle
+        = getElement(_softBodyNodeElement, "soft_shape");
+
+    // mass
+    double totalMass = getValueDouble(softShapeEle, "total_mass");
+
+    // pose
+    Eigen::Isometry3d T = Eigen::Isometry3d::Identity();
+    if (hasElement(softShapeEle, "pose"))
+      T = getValueIsometry3dWithExtrinsicRotation(softShapeEle, "pose");
+
+    // geometry
+    tinyxml2::XMLElement* geometryEle = getElement(softShapeEle, "geometry");
+    if (hasElement(geometryEle, "box"))
+    {
+      tinyxml2::XMLElement* boxEle = getElement(geometryEle, "box");
+      Eigen::Vector3d size  = getValueVector3d(boxEle, "size");
+      Eigen::Vector3i frags = getValueVector3i(boxEle, "frags");
+      softProperties = dynamics::SoftBodyNodeHelper::makeBoxProperties(
+            size, T, frags, totalMass);
+    }
+    else if (hasElement(geometryEle, "ellipsoid"))
+    {
+      tinyxml2::XMLElement* ellipsoidEle = getElement(geometryEle, "ellipsoid");
+      Eigen::Vector3d size = getValueVector3d(ellipsoidEle, "size");
+      double nSlices       = getValueDouble(ellipsoidEle, "num_slices");
+      double nStacks       = getValueDouble(ellipsoidEle, "num_stacks");
+      softProperties = dynamics::SoftBodyNodeHelper::makeEllipsoidProperties(
+            size, nSlices, nStacks, totalMass);
+    }
+    else if (hasElement(geometryEle, "cylinder"))
+    {
+      tinyxml2::XMLElement* ellipsoidEle = getElement(geometryEle, "cylinder");
+      double radius  = getValueDouble(ellipsoidEle, "radius");
+      double height  = getValueDouble(ellipsoidEle, "height");
+      double nSlices = getValueDouble(ellipsoidEle, "num_slices");
+      double nStacks = getValueDouble(ellipsoidEle, "num_stacks");
+      double nRings = getValueDouble(ellipsoidEle, "num_rings");
+      softProperties = dynamics::SoftBodyNodeHelper::makeCylinderProperties(
+            radius, height, nSlices, nStacks, nRings, totalMass);
+    }
+    else
+    {
+      dterr << "Unknown soft shape.\n";
+    }
+
+    // kv
+    if (hasElement(softShapeEle, "kv"))
+    {
+      softProperties.mKv = getValueDouble(softShapeEle, "kv");
+    }
+
+    // ke
+    if (hasElement(softShapeEle, "ke"))
+    {
+      softProperties.mKe = getValueDouble(softShapeEle, "ke");
+    }
+
+    // damp
+    if (hasElement(softShapeEle, "damp"))
+    {
+      softProperties.mDampCoeff = getValueDouble(softShapeEle, "damp");
+    }
+  }
+
+  SDFBodyNode sdfBodyNode;
+  sdfBodyNode.properties =
+      Eigen::make_aligned_shared<dynamics::SoftBodyNode::Properties>(
+        *standardProperties, softProperties);
+  sdfBodyNode.initTransform = standardSDF.initTransform;
+  sdfBodyNode.type = "soft";
 
   return sdfBodyNode;
 }
