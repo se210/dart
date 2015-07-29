@@ -61,13 +61,14 @@ public:
   // TODO(JS): We should not use ShapeType because this is not extendable.
   /// \brief
   enum ShapeType {
-    BOX,
+    BOX = 0,
     ELLIPSOID,
     CYLINDER,
     PLANE,
     MESH,
     SOFT_MESH,
-    LINE_SEGMENT
+    LINE_SEGMENT,
+    COUNT
   };
 
   /// \brief Constructor

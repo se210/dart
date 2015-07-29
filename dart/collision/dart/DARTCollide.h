@@ -37,48 +37,55 @@
 #ifndef DART_COLLISION_DART_DARTCOLLIDE_H_
 #define DART_COLLISION_DART_DARTCOLLIDE_H_
 
+//==============================================================================
+// NOTE: DARTCollide.h and DARTCollide.cpp are deprecated as of dart 5.1 and
+// will be removed in dart 6.0. Please use dart/collision/dart/DARTCollision.h
+// instead.
+//==============================================================================
+
 #include <vector>
 
 #include <Eigen/Dense>
 
+#include "dart/common/Deprecated.h"
 #include "dart/collision/CollisionDetector.h"
-#include "dart/dynamics/Shape.h"
-
-namespace dart {
-namespace dynamics {
-class Shape;
-}  // namespace dynamics
-}  // namespace dart
 
 namespace dart {
 namespace collision {
 
+DEPRECATED(5.1)
 int collide(dart::dynamics::ConstShapePtr _shape0, const Eigen::Isometry3d& _T0,
             dart::dynamics::ConstShapePtr _shape1, const Eigen::Isometry3d& _T1,
             std::vector<Contact>* _result);
 
+DEPRECATED(5.1)
 int collideBoxBox(const Eigen::Vector3d& size0, const Eigen::Isometry3d& T0,
                   const Eigen::Vector3d& size1, const Eigen::Isometry3d& T1,
                   std::vector<Contact>* result);
 
+DEPRECATED(5.1)
 int collideBoxSphere(const Eigen::Vector3d& size0, const Eigen::Isometry3d& T0,
                      const double& r1, const Eigen::Isometry3d& T1,
                      std::vector<Contact>* result);
 
+DEPRECATED(5.1)
 int collideSphereBox(const double& r0, const Eigen::Isometry3d& T0,
                      const Eigen::Vector3d& size1, const Eigen::Isometry3d& T1,
                      std::vector<Contact>* result);
 
+DEPRECATED(5.1)
 int collideSphereSphere(const double& _r0, const Eigen::Isometry3d& c0,
                         const double& _r1, const Eigen::Isometry3d& c1,
                         std::vector<Contact>* result);
 
+DEPRECATED(5.1)
 int collideCylinderSphere(
     const double& cyl_rad, const double& half_height,
     const Eigen::Isometry3d& T0,
     const double& sphere_rad, const Eigen::Isometry3d& T1,
     std::vector<Contact>* result);
 
+DEPRECATED(5.1)
 int collideCylinderPlane(
     const double& cyl_rad, const double& half_height,
     const Eigen::Isometry3d& T0,

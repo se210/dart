@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015, Georgia Tech Research Corporation
+ * Copyright (c) 2015, Georgia Tech Research Corporation
  * All rights reserved.
  *
  * Author(s): Jeongseok Lee <jslee02@gmail.com>
@@ -34,39 +34,73 @@
  *   POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef  DART_COLLISION_DART_DARTCOLLISIONDETECTOR_H_
-#define  DART_COLLISION_DART_DARTCOLLISIONDETECTOR_H_
+#ifndef  DART_COLLISION_DART_NARROWPHASE_H_
+#define  DART_COLLISION_DART_NARROWPHASE_H_
 
+#include <array>
+
+#include "dart/common/Console.h"
+#include "dart/collision/CollisionNode.h"
 #include "dart/collision/CollisionDetector.h"
 
+#include "dart/dynamics/Shape.h"
+#include "dart/dynamics/BoxShape.h"
+#include "dart/dynamics/CylinderShape.h"
+#include "dart/dynamics/EllipsoidShape.h"
+#include "dart/dynamics/PlaneShape.h"
+#include "dart/dynamics/MeshShape.h"
+#include "dart/dynamics/SoftMeshShape.h"
+
 namespace dart {
+
+namespace dynamics {
+class Shape;
+}  // namespace dynamics
+
 namespace collision {
 
-/// \brief
-class DARTCollisionDetector : public CollisionDetector
+//==============================================================================
+class CollisionOptions
 {
 public:
-  /// \brief Default constructor
-  DARTCollisionDetector();
+  CollisionOptions();
 
-  /// \brief Default destructor
-  virtual ~DARTCollisionDetector();
+  ~CollisionOptions();
+};
 
-  // Documentation inherited
-  virtual CollisionNode* createCollisionNode(dynamics::BodyNode* _bodyNode);
+//==============================================================================
+class CollisionResult
+{
+public:
+  CollisionResult();
 
-  // Documentation inherited
-  virtual bool detectCollision(bool _checkAllCollisions,
-                               bool _calculateContactPoints);
+  ~CollisionResult();
 
-protected:
-  // Documentation inherited
-  virtual bool detectCollision(CollisionNode* _collNode1,
-                               CollisionNode* _collNode2,
-                               bool _calculateContactPoints);
+  void addContact(const Contact& _contact);
+
+  const Contact& getContact(size_t _index);
+
+  void removeAllContacts();
+
+  std::size_t getNumContacts();
+
+private:
+  std::vector<Contact> mContacts;
+};
+
+//==============================================================================
+class NarrowPhaseAlgorithm
+{
+public:
+  static std::size_t collide(const dynamics::Shape* _geom1,
+                             const Eigen::Isometry3d& _tf1,
+                             const dynamics::Shape* _geom2,
+                             const Eigen::Isometry3d& _tf2,
+                             const CollisionOptions& _options,
+                             CollisionResult& result);
 };
 
 }  // namespace collision
 }  // namespace dart
 
-#endif  // DART_COLLISION_DART_DARTCOLLISIONDETECTOR_H_
+#endif  // DART_COLLISION_DART_NARROWPHASE_H_

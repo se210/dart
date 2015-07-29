@@ -180,6 +180,12 @@ const Eigen::Vector3d& MeshShape::getScale() const {
   return mScale;
 }
 
+//==============================================================================
+const Eigen::Vector3d& MeshShape::getCenter() const
+{
+  return mCenter;
+}
+
 int MeshShape::getDisplayList() const {
   return mDisplayList;
 }
@@ -227,6 +233,28 @@ void MeshShape::computeVolume() {
   double w = mScale[2] * mBoundingBoxDim[2];
 
   mVolume = l * h * w;
+}
+
+//==============================================================================
+void MeshShape::computeCenter()
+{
+  mCenter.setZero();
+
+  size_t numVertices = 0;
+
+  for (unsigned int i = 0; i < mMesh->mNumMeshes; i++)
+  {
+    for (unsigned int j = 0; j < mMesh->mMeshes[i]->mNumVertices; j++)
+    {
+      mCenter[0] += mMesh->mMeshes[i]->mVertices[j].x;
+      mCenter[1] += mMesh->mMeshes[i]->mVertices[j].y;
+      mCenter[2] += mMesh->mMeshes[i]->mVertices[j].z;
+    }
+
+    numVertices += mMesh->mMeshes[i]->mNumVertices;
+  }
+
+  mCenter /= numVertices;
 }
 
 void MeshShape::_updateBoundingBoxDim() {

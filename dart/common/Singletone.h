@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015, Georgia Tech Research Corporation
+ * Copyright (c) 2015, Georgia Tech Research Corporation
  * All rights reserved.
  *
  * Author(s): Jeongseok Lee <jslee02@gmail.com>
@@ -34,39 +34,54 @@
  *   POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef  DART_COLLISION_DART_DARTCOLLISIONDETECTOR_H_
-#define  DART_COLLISION_DART_DARTCOLLISIONDETECTOR_H_
-
-#include "dart/collision/CollisionDetector.h"
+#ifndef DART_COMMON_SINGLETON_H_
+#define DART_COMMON_SINGLETON_H_
 
 namespace dart {
-namespace collision {
+namespace common {
 
-/// \brief
-class DARTCollisionDetector : public CollisionDetector
+/// Singleton template class
+///
+/// \note This singleton is not thread safe. For use of thread safe singleton,
+/// use static initialization as:
+/// \code{.cpp}
+/// // Singletone class Engine
+/// class Engine : public Singleton<Engine> {};
+///
+/// // Call before main() and use theT only instead of calling getInstance()
+/// static T& theT = T::getInstance();
+/// \endcode
+template <class T>
+class Singleton
 {
 public:
-  /// \brief Default constructor
-  DARTCollisionDetector();
+  /// Get reference of the singleton
+  static T& getInstance();
 
-  /// \brief Default destructor
-  virtual ~DARTCollisionDetector();
-
-  // Documentation inherited
-  virtual CollisionNode* createCollisionNode(dynamics::BodyNode* _bodyNode);
-
-  // Documentation inherited
-  virtual bool detectCollision(bool _checkAllCollisions,
-                               bool _calculateContactPoints);
+  /// Get pointer of the singleton
+  static T* getInstancePtr();
 
 protected:
-  // Documentation inherited
-  virtual bool detectCollision(CollisionNode* _collNode1,
-                               CollisionNode* _collNode2,
-                               bool _calculateContactPoints);
+  /// Constructor
+  Singleton() = default;
+
+  /// Destructor
+  virtual ~Singleton() = default;
+
+private:
+  /// Deleted copy constructor
+  Singleton(const T&) = delete;
+
+  /// Deleted assignment operator
+  const T& operator=(const T&) = delete;
+
+private:
+  static T* mInstance;
 };
 
-}  // namespace collision
+}  // namespace common
 }  // namespace dart
 
-#endif  // DART_COLLISION_DART_DARTCOLLISIONDETECTOR_H_
+#include "dart/common/detail/Singleton.h"
+
+#endif  // DART_COMMON_SINGLETON_H_

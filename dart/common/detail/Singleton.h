@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013-2015, Georgia Tech Research Corporation
+ * Copyright (c) 2015, Georgia Tech Research Corporation
  * All rights reserved.
  *
  * Author(s): Jeongseok Lee <jslee02@gmail.com>
@@ -34,39 +34,39 @@
  *   POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef  DART_COLLISION_DART_DARTCOLLISIONDETECTOR_H_
-#define  DART_COLLISION_DART_DARTCOLLISIONDETECTOR_H_
-
-#include "dart/collision/CollisionDetector.h"
+#ifndef DART_COMMON_DETAIL_SINGLETON_H_
+#define DART_COMMON_DETAIL_SINGLETON_H_
 
 namespace dart {
-namespace collision {
+namespace common {
 
-/// \brief
-class DARTCollisionDetector : public CollisionDetector
+// Initialization of the singleton instance as nullptr pointer
+template <class T> T* Singleton<T>::mInstance = nullptr;
+
+//==============================================================================
+template <class T>
+T& Singleton<T>::getInstance()
 {
-public:
-  /// \brief Default constructor
-  DARTCollisionDetector();
+  // http://stackoverflow.com/questions/1008019/c-singleton-design-pattern
 
-  /// \brief Default destructor
-  virtual ~DARTCollisionDetector();
+  // Guaranteed to be destroyed and instantiated on first use.
+  if (nullptr == mInstance)
+  {
+    static T instance;
+    mInstance = &instance;
+  }
 
-  // Documentation inherited
-  virtual CollisionNode* createCollisionNode(dynamics::BodyNode* _bodyNode);
+  return *mInstance;
+}
 
-  // Documentation inherited
-  virtual bool detectCollision(bool _checkAllCollisions,
-                               bool _calculateContactPoints);
+//==============================================================================
+template <class T>
+T* Singleton<T>::getInstancePtr()
+{
+  return &getInstance();
+}
 
-protected:
-  // Documentation inherited
-  virtual bool detectCollision(CollisionNode* _collNode1,
-                               CollisionNode* _collNode2,
-                               bool _calculateContactPoints);
-};
-
-}  // namespace collision
+}  // namespace common
 }  // namespace dart
 
-#endif  // DART_COLLISION_DART_DARTCOLLISIONDETECTOR_H_
+#endif  // DART_COMMON_DETAIL_SINGLETON_H_

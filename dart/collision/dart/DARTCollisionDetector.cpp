@@ -40,35 +40,46 @@
 
 #include "dart/dynamics/Shape.h"
 #include "dart/dynamics/BodyNode.h"
-#include "dart/collision/dart/DARTCollide.h"
+#include "dart/collision/dart/NarrowPhase.h"
 
 namespace dart {
 namespace collision {
 
+//==============================================================================
 DARTCollisionDetector::DARTCollisionDetector()
-  : CollisionDetector() {
+  : CollisionDetector()
+{
 }
 
-DARTCollisionDetector::~DARTCollisionDetector() {
+//==============================================================================
+DARTCollisionDetector::~DARTCollisionDetector()
+{
 }
 
+//==============================================================================
 CollisionNode* DARTCollisionDetector::createCollisionNode(
-    dynamics::BodyNode* _bodyNode) {
+    dynamics::BodyNode* _bodyNode)
+{
   return new CollisionNode(_bodyNode);
 }
 
+//==============================================================================
 bool DARTCollisionDetector::detectCollision(bool /*_checkAllCollisions*/,
-                                            bool /*_calculateContactPoints*/) {
+                                            bool /*_calculateContactPoints*/)
+{
   clearAllContacts();
 
   // Set all the body nodes are not in colliding
   for (size_t i = 0; i < mCollisionNodes.size(); i++)
     mCollisionNodes[i]->getBodyNode()->setColliding(false);
 
-  std::vector<Contact> contacts;
+  CollisionOptions options;
+  CollisionResult result;
 
-  for (size_t i = 0; i < mCollisionNodes.size(); i++) {
-    for (size_t j = i + 1; j < mCollisionNodes.size(); j++) {
+  for (size_t i = 0; i < mCollisionNodes.size(); i++)
+  {
+    for (size_t j = i + 1; j < mCollisionNodes.size(); j++)
+    {
       CollisionNode* collNode1 = mCollisionNodes[i];
       CollisionNode* collNode2 = mCollisionNodes[j];
       dynamics::BodyNode* BodyNode1 = collNode1->getBodyNode();
@@ -77,24 +88,30 @@ bool DARTCollisionDetector::detectCollision(bool /*_checkAllCollisions*/,
       if (!isCollidable(collNode1, collNode2))
         continue;
 
-      for (size_t k = 0; k < BodyNode1->getNumCollisionShapes(); k++) {
-        for (size_t l = 0; l < BodyNode2->getNumCollisionShapes(); l++) {
+      for (size_t k = 0; k < BodyNode1->getNumCollisionShapes(); k++)
+      {
+        for (size_t l = 0; l < BodyNode2->getNumCollisionShapes(); l++)
+        {
           int currContactNum = mContacts.size();
 
-          contacts.clear();
-          collide(BodyNode1->getCollisionShape(k),
-                  BodyNode1->getTransform()
-                  * BodyNode1->getCollisionShape(k)->getLocalTransform(),
-                  BodyNode2->getCollisionShape(l),
-                  BodyNode2->getTransform()
-                  * BodyNode2->getCollisionShape(l)->getLocalTransform(),
-                  &contacts);
+          result.removeAllContacts();
 
-          size_t numContacts = contacts.size();
+          NarrowPhaseAlgorithm::collide(
+                BodyNode1->getCollisionShape(k).get(),
+                BodyNode1->getTransform()
+                * BodyNode1->getCollisionShape(k)->getLocalTransform(),
+                BodyNode2->getCollisionShape(l).get(),
+                BodyNode2->getTransform()
+                * BodyNode2->getCollisionShape(l)->getLocalTransform(),
+                options,
+                result);
 
-          for (unsigned int m = 0; m < numContacts; ++m) {
+          size_t numContacts = result.getNumContacts();
+
+          for (unsigned int m = 0; m < numContacts; ++m)
+          {
             Contact contactPair;
-            contactPair = contacts[m];
+            contactPair = result.getContact(m);
             contactPair.bodyNode1 = BodyNode1;
             contactPair.bodyNode2 = BodyNode2;
             assert(contactPair.bodyNode1.lock() != nullptr);
@@ -104,12 +121,15 @@ bool DARTCollisionDetector::detectCollision(bool /*_checkAllCollisions*/,
           }
 
           std::vector<bool> markForDeletion(numContacts, false);
-          for (size_t m = 0; m < numContacts; m++) {
-            for (size_t n = m + 1; n < numContacts; n++) {
+          for (size_t m = 0; m < numContacts; m++)
+          {
+            for (size_t n = m + 1; n < numContacts; n++)
+            {
               Eigen::Vector3d diff =
                   mContacts[currContactNum + m].point -
                   mContacts[currContactNum + n].point;
-              if (diff.dot(diff) < 1e-6) {
+              if (diff.dot(diff) < 1e-6)
+              {
                 markForDeletion[m] = true;
                 break;
               }
@@ -136,26 +156,34 @@ bool DARTCollisionDetector::detectCollision(bool /*_checkAllCollisions*/,
   return !mContacts.empty();
 }
 
+//==============================================================================
 bool DARTCollisionDetector::detectCollision(CollisionNode* _collNode1,
                                             CollisionNode* _collNode2,
-                                            bool /*_calculateContactPoints*/) {
-  std::vector<Contact> contacts;
+                                            bool /*_calculateContactPoints*/)
+{
   dynamics::BodyNode* BodyNode1 = _collNode1->getBodyNode();
   dynamics::BodyNode* BodyNode2 = _collNode2->getBodyNode();
 
-  for (size_t i = 0; i < BodyNode1->getNumCollisionShapes(); i++) {
-    for (size_t j = 0; j < BodyNode2->getNumCollisionShapes(); j++) {
-      collide(BodyNode1->getCollisionShape(i),
-              BodyNode1->getTransform()
-              * BodyNode1->getCollisionShape(i)->getLocalTransform(),
-              BodyNode2->getCollisionShape(j),
-              BodyNode2->getTransform()
-              * BodyNode2->getCollisionShape(j)->getLocalTransform(),
-              &contacts);
+  CollisionOptions options;
+  CollisionResult result;
+
+  for (size_t i = 0; i < BodyNode1->getNumCollisionShapes(); i++)
+  {
+    for (size_t j = 0; j < BodyNode2->getNumCollisionShapes(); j++)
+    {
+      NarrowPhaseAlgorithm::collide(
+            BodyNode1->getCollisionShape(i).get(),
+            BodyNode1->getTransform()
+            * BodyNode1->getCollisionShape(i)->getLocalTransform(),
+            BodyNode2->getCollisionShape(j).get(),
+            BodyNode2->getTransform()
+            * BodyNode2->getCollisionShape(j)->getLocalTransform(),
+            options,
+            result);
     }
   }
 
-  return contacts.size() > 0 ? true : false;
+  return result.getNumContacts() > 0;
 }
 
 }  // namespace collision

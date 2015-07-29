@@ -72,6 +72,9 @@ public:
   /// \brief
   const Eigen::Vector3d& getScale() const;
 
+  /// Return average point of mesh's vertices
+  const Eigen::Vector3d& getCenter() const;
+
   /// \brief
   int getDisplayList() const;
 
@@ -93,6 +96,9 @@ protected:
   // Documentation inherited.
   virtual void computeVolume();
 
+  /// Compute the average point of mesh's vertices
+  void computeCenter();
+
 private:
   /// \brief
   void _updateBoundingBoxDim();
@@ -109,6 +115,9 @@ protected:
 
   /// \brief Scale
   Eigen::Vector3d mScale;
+
+  /// Average point of mesh's vertices
+  Eigen::Vector3d mCenter;
 
 public:
   // To get byte-aligned Eigen vectors
