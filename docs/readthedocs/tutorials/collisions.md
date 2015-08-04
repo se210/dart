@@ -707,8 +707,6 @@ And that's it! You're ready to run the full tutorialCollisions application!
 finnicky, so you may see some unstable and even completely non-physical behavior.
 If the application freezes, you may need to force quit out of it.**
 
-----
-
 <div id="fb-root"></div>
 <script>(function(d, s, id) {
   var js, fjs = d.getElementsByTagName(s)[0];
