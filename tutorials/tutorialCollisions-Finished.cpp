@@ -33,12 +33,14 @@
  *   ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  *   POSSIBILITY OF SUCH DAMAGE.
  */
-
+#include <random>
 #include "dart/dart.h"
+#include <random>
 
 const double default_shape_density = 1000; // kg/m^3
 const double default_shape_height  = 0.1;  // m
 const double default_shape_width   = 0.03; // m
+const double default_skin_thickness = 1e-3; // m
 
 const double default_start_height = 0.4;  // m
 
@@ -53,8 +55,9 @@ const double default_launch_angle = 45.0*M_PI/180.0; // rad
 const double maximum_start_w = 6*M_PI; // rad/s
 const double default_start_w = 3*M_PI;  // rad/s
 
-const double default_spring_stiffness = 0.5;
-const double default_damping_coefficient = 0.05;
+const double ring_spring_stiffness = 0.5;
+const double ring_damping_coefficient = 0.05;
+const double default_damping_coefficient = 0.001;
 
 const double default_ground_width = 2;
 const double default_wall_thickness = 0.1;
@@ -63,8 +66,8 @@ const double default_spawn_range = 0.9*default_ground_width/2;
 
 const double default_restitution = 0.6;
 
-const double default_vertex_stiffness = 100.0;
-const double default_edge_stiffness = 10.0;
+const double default_vertex_stiffness = 1000.0;
+const double default_edge_stiffness = 1.0;
 const double default_soft_damping = 5.0;
 
 using namespace dart::dynamics;
@@ -76,8 +79,8 @@ void setupRing(const SkeletonPtr& ring)
   for(size_t i=6; i < ring->getNumDofs(); ++i)
   {
     DegreeOfFreedom* dof = ring->getDof(i);
-    dof->setSpringStiffness(default_spring_stiffness);
-    dof->setDampingCoefficient(default_damping_coefficient);
+    dof->setSpringStiffness(ring_spring_stiffness);
+    dof->setDampingCoefficient(ring_damping_coefficient);
   }
 
   // Compute the joint angle needed to form a ring
@@ -109,13 +112,14 @@ class MyWindow : public dart::gui::SimWindow
 public:
 
   MyWindow(const WorldPtr& world, const SkeletonPtr& ball,
-           const SkeletonPtr& hybridBody, const SkeletonPtr& rigidChain,
-           const SkeletonPtr& rigidRing)
+           const SkeletonPtr& softBody, const SkeletonPtr& hybridBody,
+           const SkeletonPtr& rigidChain, const SkeletonPtr& rigidRing)
     : mRandomize(true),
       mRD(),
       mMT(mRD()),
       mDistribution(-1.0, std::nextafter(1.0, 2.0)),
       mOriginalBall(ball),
+      mOriginalSoftBody(softBody),
       mOriginalHybridBody(hybridBody),
       mOriginalRigidChain(rigidChain),
       mOriginalRigidRing(rigidRing),
@@ -133,14 +137,18 @@ public:
         break;
 
       case '2':
-        addObject(mOriginalHybridBody->clone());
+        addObject(mOriginalSoftBody->clone());
         break;
 
       case '3':
-        addObject(mOriginalRigidChain->clone());
+        addObject(mOriginalHybridBody->clone());
         break;
 
       case '4':
+        addObject(mOriginalRigidChain->clone());
+        break;
+
+      case '5':
         addRing(mOriginalRigidRing->clone());
         break;
 
@@ -325,6 +333,9 @@ protected:
   /// A blueprint Skeleton that we will use to spawn balls
   SkeletonPtr mOriginalBall;
 
+  /// A blueprint Skeleton that we will use to spawn soft bodies
+  SkeletonPtr mOriginalSoftBody;
+
   /// A blueprint Skeleton that we will use to spawn hybrid bodies
   SkeletonPtr mOriginalHybridBody;
 
@@ -395,6 +406,14 @@ BodyNode* addRigidBody(const SkeletonPtr& chain, const std::string& name,
   // Set the coefficient of restitution to make the body more bouncy
   bn->setRestitutionCoeff(default_restitution);
 
+  // Set damping to make the simulation more stable
+  if(parent)
+  {
+    Joint* joint = bn->getParentJoint();
+    for(size_t i=0; i < joint->getNumDofs(); ++i)
+      joint->getDof(i)->setDampingCoefficient(default_damping_coefficient);
+  }
+
   return bn;
 }
 
@@ -409,8 +428,6 @@ template<class JointType>
 BodyNode* addSoftBody(const SkeletonPtr& chain, const std::string& name,
                       SoftShapeType type, BodyNode* parent = nullptr)
 {
-  // Compute the transform for the center of the object
-
   // Set the Joint properties
   typename JointType::Properties joint_properties;
   joint_properties.mName = name+"_joint";
@@ -430,17 +447,26 @@ BodyNode* addSoftBody(const SkeletonPtr& chain, const std::string& name,
   // SoftBodyNode
   if(SOFT_BOX == type)
   {
-    double width = default_shape_width, height = default_shape_height;
+    // Make a wide and short box
+    double width = default_shape_height, height = 2*default_shape_width;
     Eigen::Vector3d dims(width, width, height);
-    double mass = default_shape_density * dims[0]*dims[1]*dims[2];
+
+    double mass = 2*dims[0]*dims[1] + 2*dims[0]*dims[2] + 2*dims[1]*dims[2];
+    mass *= default_shape_density * default_skin_thickness;
     soft_properties = SoftBodyNodeHelper::makeBoxProperties(
           dims, Eigen::Isometry3d::Identity(), Eigen::Vector3i(4,4,4), mass);
   }
   else if(SOFT_CYLINDER == type)
   {
-    double radius = default_shape_width/2.0;
-    double height = default_shape_height;
-    double mass = default_shape_density * height * pow(M_PI*radius, 2);
+    // Make a wide and short cylinder
+    double radius = default_shape_height/2.0, height = 2*default_shape_width;
+
+    // Mass of center
+    double mass = default_shape_density * height * 2*M_PI*radius
+                  * default_skin_thickness;
+    // Mass of top and bottom
+    mass += 2 * default_shape_density * M_PI*pow(radius,2)
+                * default_skin_thickness;
     soft_properties = SoftBodyNodeHelper::makeCylinderProperties(
           radius, height, 8, 3, 2, mass);
   }
@@ -448,7 +474,8 @@ BodyNode* addSoftBody(const SkeletonPtr& chain, const std::string& name,
   {
     double radius = default_shape_height/2.0;
     Eigen::Vector3d dims = 2*radius*Eigen::Vector3d::Ones();
-    double mass = default_shape_density * 4.0/3.0*M_PI*pow(radius,3);
+    double mass = default_shape_density * 4.0*M_PI*pow(radius, 2)
+                  * default_skin_thickness;
     soft_properties = SoftBodyNodeHelper::makeEllipsoidProperties(
           dims, 6, 6, mass);
   }
@@ -461,6 +488,17 @@ BodyNode* addSoftBody(const SkeletonPtr& chain, const std::string& name,
                                            soft_properties);
   SoftBodyNode* bn = chain->createJointAndBodyNodePair<JointType, SoftBodyNode>(
         parent, joint_properties, body_properties).second;
+
+  // Zero out the inertia for the underlying BodyNode
+  Inertia inertia;
+  inertia.setMoment(1e-8*Eigen::Matrix3d::Identity());
+  inertia.setMass(1e-8);
+  bn->setInertia(inertia);
+
+  // Make the shape transparent
+  Eigen::Vector4d color = bn->getVisualizationShape(0)->getRGBA();
+  color[3] = 0.4;
+  bn->getVisualizationShape(0)->setRGBA(color);
 
   return bn;
 }
@@ -519,6 +557,32 @@ SkeletonPtr createRigidRing()
   return ring;
 }
 
+SkeletonPtr createSoftBody()
+{
+  SkeletonPtr soft = Skeleton::create("soft");
+
+  // Add a soft body
+  BodyNode* bn = addSoftBody<FreeJoint>(soft, "soft box", SOFT_BOX);
+
+  // Add a rigid collision geometry and inertia
+  double width = default_shape_height, height = 2*default_shape_width;
+  Eigen::Vector3d dims(width, width, height);
+  dims *= 0.6;
+  std::shared_ptr<BoxShape> box = std::make_shared<BoxShape>(dims);
+
+  bn->addCollisionShape(box);
+  bn->addVisualizationShape(box);
+
+  Inertia inertia;
+  inertia.setMass(default_shape_density * box->getVolume());
+  inertia.setMoment(box->computeInertia(inertia.getMass()));
+  bn->setInertia(inertia);
+
+  setAllColors(soft, dart::Color::Fuschia());
+
+  return soft;
+}
+
 SkeletonPtr createHybridBody()
 {
   SkeletonPtr hybrid = Skeleton::create("hybrid");
@@ -533,15 +597,16 @@ SkeletonPtr createHybridBody()
   double box_shape_height = default_shape_height;
   std::shared_ptr<BoxShape> box = std::make_shared<BoxShape>(
         box_shape_height*Eigen::Vector3d::Ones());
-  Eigen::Isometry3d tf(Eigen::Isometry3d::Identity());
-  tf.translation() = Eigen::Vector3d(box_shape_height/2.0, 0, 0);
-  box->setLocalTransform(tf);
 
   bn->addCollisionShape(box);
   bn->addVisualizationShape(box);
 
+  Eigen::Isometry3d tf(Eigen::Isometry3d::Identity());
+  tf.translation() = Eigen::Vector3d(box_shape_height/2.0, 0, 0);
+  bn->getParentJoint()->setTransformFromParentBodyNode(tf);
+
   Inertia inertia;
-  inertia.setMass(default_shape_density*pow(box_shape_height,3));
+  inertia.setMass(default_shape_density * box->getVolume());
   inertia.setMoment(box->computeInertia(inertia.getMass()));
   bn->setInertia(inertia);
 
@@ -598,14 +663,15 @@ int main(int argc, char* argv[])
   world->addSkeleton(createGround());
   world->addSkeleton(createWall());
 
-  MyWindow window(world, createBall(), createHybridBody(),
+  MyWindow window(world, createBall(), createSoftBody(), createHybridBody(),
                   createRigidChain(), createRigidRing());
 
   std::cout << "space bar: simulation on/off" << std::endl;
   std::cout << "'1': toss a rigid ball" << std::endl;
-  std::cout << "'2': toss a hybrid soft/rigid body" << std::endl;
-  std::cout << "'3': toss a rigid chain" << std::endl;
-  std::cout << "'4': toss a ring of rigid bodies" << std::endl;
+  std::cout << "'2': toss a soft body" << std::endl;
+  std::cout << "'3': toss a hybrid soft/rigid body" << std::endl;
+  std::cout << "'4': toss a rigid chain" << std::endl;
+  std::cout << "'5': toss a ring of rigid bodies" << std::endl;
 
   std::cout << "\n'd': delete the oldest object" << std::endl;
   std::cout <<   "'r': toggle randomness" << std::endl;
