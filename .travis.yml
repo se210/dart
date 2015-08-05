@@ -25,7 +25,8 @@ matrix:
 addons:
   apt:
     sources:
-      - ubuntu-toolchain-r-test
+      - ubuntu-toolchain-r-test  # gcc 4.8
+      - kubuntu  # Eigen 3.2.0
       - boost-latest
       - fcl
       - libccd
