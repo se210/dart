@@ -22,6 +22,27 @@ matrix:
     - os: osx
       compiler: gcc
 
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-4.8
+      - cmake
+      - libassimp-dev
+      - libccd-dev
+      - libfcl-dev
+      - freeglut3-dev
+      - libxi-dev
+      - libxmu-dev
+      - libflann-dev
+      - coinor-libipopt-dev
+      - libboost-dev
+      - libtinyxml-dev
+      - libtinyxml2-dev
+      - liburdfdom-dev
+      - liburdfdom-headers-dev
+
 before_install:
   - if [ "$TRAVIS_OS_NAME" = "linux" ]; then 'ci/before_install_linux.sh' ; fi
   - if [ "$TRAVIS_OS_NAME" = "osx"   ]; then 'ci/before_install_osx.sh'   ; fi

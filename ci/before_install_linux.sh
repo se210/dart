@@ -9,15 +9,6 @@ before_install() {
   make CPPFLAGS='-fPIC' && sudo make install &>/dev/null  # mute the output
 }
 
-# Install gcc-4.8 and g++-4.8 for C++11
-sudo apt-get -qq --yes install python-software-properties 
-sudo add-apt-repository --yes ppa:ubuntu-toolchain-r/test
-sudo apt-get -qq update
-sudo apt-get -qq --yes install gcc-4.8 g++-4.8
-sudo apt-get -qq --yes autoremove
-sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-4.8 50
-sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 50
-
 # Install eigen-3.2.1 (for unsupported/Eigen/Splines)
 wget --quiet -O libeigen3-dev_3.2.1-1~precise1_all.deb http://packages.yade-dem.org/precise/libeigen3-dev_3.2.1-1~precise1_all.deb
 sudo dpkg -i libeigen3-dev_3.2.1-1~precise1_all.deb
@@ -38,31 +29,6 @@ sudo add-apt-repository --yes ppa:libccd-debs/ppa
 sudo add-apt-repository --yes ppa:fcl-debs/ppa
 sudo add-apt-repository --yes ppa:dartsim/ppa
 sudo apt-get -qq update
-
-APT_CORE='
-cmake
-libassimp-dev
-libccd-dev
-libfcl-dev
-'
-
-APT=$APT_CORE' 
-freeglut3-dev
-libxi-dev
-libxmu-dev
-libflann-dev
-coinor-libipopt-dev
-libtinyxml-dev
-libtinyxml2-dev
-liburdfdom-dev
-liburdfdom-headers-dev
-'
-
-if [ $BUILD_CORE_ONLY = OFF ]; then
-  sudo apt-get -qq --yes --force-yes install $APT
-else
-  sudo apt-get -qq --yes --force-yes install $APT_CORE
-fi
 
 (before_install)
 
