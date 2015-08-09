@@ -15,7 +15,7 @@ the final code as the answer to the tutorial (e.g. tutorialMultiPendulum-Finishe
   fjs.parentNode.insertBefore(js, fjs);
 }(document, 'script', 'facebook-jssdk'));</script>
 
-<div class="fb-like" data-href="http://dart.readthedocs.org/en/release-5.1/tutorials/introduction/" data-layout="button_count" data-action="like" data-show-faces="true" data-share="true"></div>
+<div class="fb-like" data-href="http://dart.readthedocs.org/en/release-5.1/tutorials/introduction/" data-layout="button_count" data-action="like" data-show-faces="true" data-share="false"></div>
 
 <div id="disqus_thread"></div>
 <script type="text/javascript">
