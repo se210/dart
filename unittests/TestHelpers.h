@@ -45,6 +45,8 @@
 #ifndef DART_UNITTESTS_TEST_HELPERS_H
 #define DART_UNITTESTS_TEST_HELPERS_H
 
+#include <iostream>
+#include <iomanip>
 #include <vector>
 #include <boost/math/special_functions/fpclassify.hpp>
 #include <Eigen/Dense>
@@ -54,6 +56,15 @@
 #include "dart/constraint/ConstraintSolver.h"
 #include "dart/simulation/World.h"
 #include "dart/common/ResourceRetriever.h"
+
+#define OUTPUT( x ) \
+  dtmsg << #x": " << std::setprecision(16) << x << std::endl;
+
+#define OUTPUT_VECTOR( x ) \
+  dtmsg << #x": " << std::setprecision(16) << x.transpose() << std::endl;
+
+#define OUTPUT_MATRIX( x ) \
+  dtmsg << #x": " << std::endl << std::setprecision(16) << x << std::endl;
 
 using namespace Eigen;
 using namespace dart::math;
