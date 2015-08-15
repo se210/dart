@@ -829,9 +829,6 @@ void DynamicsTest::testFiniteDifferenceBodyNodeAcceleration(
         ddq[k] = math::random(ddqLB, ddqUB);
       }
 
-      VectorXd qNext  =  q +  dq * timeStep;
-      VectorXd dqNext = dq + ddq * timeStep;
-
       // For each body node
       for (size_t k = 0; k < skeleton->getNumBodyNodes(); ++k)
       {
@@ -855,9 +852,8 @@ void DynamicsTest::testFiniteDifferenceBodyNodeAcceleration(
         Vector3d WorldAngAcc1 = bn->getAngularAcceleration();
 
         // Calculation of velocities and Jacobian at (k+1)-th time step
-        skeleton->setPositions(qNext);
-        skeleton->setVelocities(dqNext);
-        skeleton->setAccelerations(ddq);
+        skeleton->integratePositions(timeStep);
+        skeleton->integrateVelocities(timeStep);
 
         Vector3d BodyLinVel2 = bn->getLinearVelocity(Frame::World(), bn);
         Vector3d BodyAngVel2 = bn->getAngularVelocity(Frame::World(), bn);

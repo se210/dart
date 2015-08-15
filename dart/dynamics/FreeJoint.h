@@ -68,13 +68,13 @@ public:
   Properties getFreeJointProperties() const;
 
   // Documentation inherited
-  virtual const std::string& getType() const override;
+  const std::string& getType() const override;
 
   /// Get joint type for this class
   static const std::string& getStaticType();
 
   // Documentation inherited
-  virtual bool isCyclic(size_t _index) const override;
+  bool isCyclic(size_t _index) const override;
 
   /// Convert a transform into a 6D vector that can be used to set the positions
   /// of a FreeJoint. The positions returned by this function will result in a
@@ -106,19 +106,19 @@ protected:
   using MultiDofJoint::getLocalJacobianStatic;
 
   // Documentation inherited
-  virtual void integratePositions(double _dt) override;
+  void integratePositions(double _dt) override;
 
   // Documentation inherited
-  virtual void updateDegreeOfFreedomNames() override;
+  void updateDegreeOfFreedomNames() override;
 
   // Documentation inherited
-  virtual void updateLocalTransform() const override;
+  void updateLocalTransform() const override;
 
   // Documentation inherited
-  virtual void updateLocalJacobian(bool =true) const override;
+  void updateLocalJacobian(bool mandatory = true) const override;
 
   // Documentation inherited
-  virtual void updateLocalJacobianTimeDeriv() const override;
+  void updateLocalJacobianTimeDeriv() const override;
 
 protected:
 

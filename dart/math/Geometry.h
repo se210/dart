@@ -199,6 +199,9 @@ Eigen::Vector6d logMap(const Eigen::Isometry3d& _T);
 /// where @f$T=(R,p)@in SE(3), @quad V=(w,v)@in se(3) @f$.
 Eigen::Vector6d AdT(const Eigen::Isometry3d& _T, const Eigen::Vector6d& _V);
 
+/// \brief Get linear transformation matrix of Adjoint mapping
+Eigen::Matrix6d getAdTMatrix(const Eigen::Isometry3d& T);
+
 /// Adjoint mapping for dynamic size Jacobian
 template<typename Derived>
 typename Derived::PlainObject AdTJac(const Eigen::Isometry3d& _T,
