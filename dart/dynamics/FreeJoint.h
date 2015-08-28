@@ -95,6 +95,8 @@ public:
   Eigen::Vector6d getPositionDifferencesStatic(
       const Eigen::Vector6d& _q2, const Eigen::Vector6d& _q1) const override;
 
+  mutable math::Jacobian mPrevJacobian;
+
 protected:
 
   /// Constructor called by Skeleton class

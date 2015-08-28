@@ -205,6 +205,7 @@ void FreeJoint::updateLocalTransform() const
 //==============================================================================
 void FreeJoint::updateLocalJacobian(bool) const
 {
+  mPrevJacobian = mJacobian;
   mJacobian = getLocalJacobian(getPositionsStatic());
 }
 

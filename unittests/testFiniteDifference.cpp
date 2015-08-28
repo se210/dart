@@ -189,7 +189,7 @@ TEST(FiniteDifference, BipedRoot)
   Controller* controller = new Controller(biped, world->getTimeStep());
 
   // Run 1000 steps
-  const std::size_t numFrames = 1000;
+  const std::size_t numFrames = 5000;
   for (std::size_t i = 0; i < numFrames; ++i)
   {
     controller->computeTorques();
@@ -212,26 +212,42 @@ TEST(FiniteDifference, BipedRoot)
   std::cout.precision(15);
   const double h = biped->getTimeStep();
 
+  // Since the integration of rotation part in FreeJoint is: R2 = R1 * exp(Jw(q1) * dq2 * h),
+  // we get angular velocity using finite difference as Jw(q1) * dq2 = log(R2^T * R1) / h
+  // Note that the angular velocity Jacobian was obtained using q1 not q2.
   biped->setPositions(testPose1);
   Isometry3d T1 = root->getTransform();
   biped->setPositions(testPose2);
   Isometry3d T2 = root->getTransform();
   Vector3d omega = T2.linear() * dart::math::logMap(
-    T1.linear().transpose() * T2.linear()) / h;
-  Vector6d V;
-  V.head(3) = omega;
-  V.tail(3) = (T2.translation()- T1.translation()) / h;
-  std::cout << "Spatial velocity from finite diff:" << std::endl << V
+        T1.linear().transpose() * T2.linear()) / h;
+  Vector6d V_diff;
+  V_diff.head(3) = omega;
+  V_diff.tail(3) = (T2.translation()- T1.translation()) / h;
+  std::cout << "Spatial velocity from finite diff:" << std::endl << V_diff
             << std::endl << std::endl;
 
-  biped->setVelocities(testVelocity);
-  Vector6d Vp;
-  Vp.head(3) = root->getAngularVelocity(Frame::World(), Frame::World());
-  Vp.tail(3) = root->getLinearVelocity();
-  std::cout << "Spatial velocity from data:" << std::endl << Vp
+  // w2 = Jw(q2) * dq2
+  Vector6d V_actual1;
+  V_actual1.head(3) = root->getAngularVelocity(Frame::World(), Frame::World());
+  V_actual1.tail(3) = root->getLinearVelocity();
+  std::cout << "Spatial velocity w2 = Jw(q2) * dq2:" << std::endl << V_actual1
             << std::endl << std::endl;
 
-  std::cout << "Differences:" << std::endl << V - Vp << std::endl << std::endl;
+  // w2 = Jw(q1) * dq2
+  Vector6d V_actual2;
+  V_actual2.head(3) = T2.linear()
+      * (static_cast<dynamics::FreeJoint*>(root->getParentJoint())->mPrevJacobian
+         * root->getParentJoint()->getVelocities()).head(3);
+  V_actual2.tail(3) = root->getLinearVelocity();
+  std::cout << "Actual spatial velocity used for transformation integration w2 = Jw(q1) * dq2:" << std::endl << V_actual2
+            << std::endl << std::endl;
+
+  Vector6d error1 = V_diff - V_actual1;
+  Vector6d error2 = V_diff - V_actual2;
+
+  std::cout << "error1:" << std::endl << error1 << std::endl << std::endl;
+  std::cout << "error2:" << std::endl << error2 << std::endl << std::endl;
 }
 
 int main(int argc, char* argv[])
