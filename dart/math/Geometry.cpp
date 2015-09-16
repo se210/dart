@@ -525,45 +525,73 @@ Eigen::Matrix3d expMapJacDeriv(const Eigen::Vector3d& _q, int _qi ) {
 //     return ret;
 // }
 
-Eigen::Vector3d logMap(const Eigen::Matrix3d& _R) {
-  //--------------------------------------------------------------------------
-  // T = (R, p) = exp([w, v]), t = ||w||
-  // v = beta*p + gamma*w + 1 / 2*cross(p, w)
-  //    , beta = t*(1 + cos(t)) / (2*sin(t)), gamma = <w, p>*(1 - beta) / t^2
-  //--------------------------------------------------------------------------
-//  double theta =
-//      std::acos(
-//        std::max(
-//          std::min(0.5 * (_R(0, 0) + _R(1, 1) + _R(2, 2) - 1.0), 1.0), -1.0));
+//==============================================================================
+Eigen::Vector3d logMap(const Eigen::Matrix3d& R)
+{
+  // By definition, the relation between rotation matrix R and angle-axis can be
+  // represented as:
+  //   R = I + sin(theta)*[w] + (1 - cos(theta))*[w]*[w]
+  // where w and theta denote an unit vector represents the rotation axis and
+  // rotation angle, respectively. Also, [w] is the skewsymmetric matrix of w.
 
-//  if (theta > DART_PI - DART_EPSILON) {
-//    double delta = 0.5 + 0.125*(DART_PI - theta)*(DART_PI - theta);
+  // From the above equation, we know the trace of a rotation matrix should be
+  // in the range of [-1.0, 3.0].
+  const double traceR = clip(R.trace(), -1.0, 3.0);
 
-//    return Eigen::Vector3d(
-//          _R(2, 1) > _R(1, 2) ? theta*sqrt(1.0 + (_R(0, 0) - 1.0)*delta) :
-//                             -theta*sqrt(1.0 + (_R(0, 0) - 1.0)*delta),
-//          _R(0, 2) > _R(2, 0) ? theta*sqrt(1.0 + (_R(1, 1) - 1.0)*delta) :
-//                             -theta*sqrt(1.0 + (_R(1, 1) - 1.0)*delta),
-//          _R(1, 0) > _R(0, 1) ? theta*sqrt(1.0 + (_R(2, 2) - 1.0)*delta) :
-//                             -theta*sqrt(1.0 + (_R(2, 2) - 1.0)*delta));
-//  } else {
-//    double alpha = 0.0;
+  const double eps = 1e-12;
+  constexpr double slightlyLessThanThree       =  3.0 - eps;
+  constexpr double slightlyGreaterThanMinusOne = -1.0 + eps;
 
-//    if (theta > DART_EPSILON)
-//      alpha = 0.5*theta / sin(theta);
-//    else
-//      alpha = 0.5 + DART_1_12*theta*theta;
+  // We first check if theta is either of zero or pi.
 
-//    return Eigen::Vector3d(alpha*(_R(2, 1) - _R(1, 2)),
-//                           alpha*(_R(0, 2) - _R(2, 0)),
-//                           alpha*(_R(1, 0) - _R(0, 1)));
-//  }
+  // If the theta is zero then R = I or the trace of R is 3.
+  if (slightlyLessThanThree < traceR)
+    return Eigen::Vector3d::Zero();
 
-  Eigen::AngleAxisd aa(_R);
-  return aa.angle()*aa.axis();
+  // If the theta is pi then R = I + 2*[w]*[w] or the trace of R is -1.
+  if (traceR < slightlyGreaterThanMinusOne)
+  {
+    // and the axis can be obtained from R = I + 2*[w]*[w]
+
+    const double r00_one = R(0, 0) + 1.0;
+    if (r00_one > eps)
+    {
+      const double c = DART_PI / std::sqrt(2.0 * r00_one);
+      return Eigen::Vector3d(c * r00_one, c * R(1, 0), c * R(2, 0));
+    }
+
+    const double r11_one = R(1, 1) + 1.0;
+    if (r11_one > eps)
+    {
+      const double c = DART_PI / std::sqrt(2.0 * r11_one);
+      return Eigen::Vector3d(c * R(0, 1), c * r11_one, c * R(2, 1));
+    }
+
+    const double r22_one = R(2, 2) + 1.0;
+    if (r22_one > eps)
+    {
+      const double c = DART_PI / std::sqrt(2.0 * r22_one);
+
+      return Eigen::Vector3d(c * R(0, 2), c * R(1, 2), c * r22_one);
+    }
+  }
+
+  // If the theta is not zero or pi, we can obtain it from:
+  //   trace(R) = 3 + 2*(1 - cos(theta))
+  const double theta = std::acos(0.5 * (traceR - 1.0));  // (0, pi)
+
+  // Now we compute w using R - R^T = 2*sin(theta)*[w]
+  // or, w = (1 / 2*sin(theta)) * [r32 - r23; r13 - r31; r21 - r12]
+  const double coeff = theta / (2.0 * std::sin(theta));
+
+  return Eigen::Vector3d(coeff * (R(2, 1) - R(1, 2)),
+                         coeff * (R(0, 2) - R(2, 0)),
+                         coeff * (R(1, 0) - R(0, 1)));
 }
 
-Eigen::Vector6d logMap(const Eigen::Isometry3d& _T) {
+//==============================================================================
+Eigen::Vector6d logMap(const Eigen::Isometry3d& _T)
+{
   //--------------------------------------------------------------------------
   // T = (R, p) = exp([w, v]), t = ||w||
   // v = beta*p + gamma*w + 1 / 2*cross(p, w)
@@ -577,10 +605,12 @@ Eigen::Vector6d logMap(const Eigen::Isometry3d& _T) {
   double gamma;
   Eigen::Vector6d ret;
 
-  if (theta > DART_PI - DART_EPSILON) {
-    const double c1 = 0.10132118364234;  // 1 / pi^2
-    const double c2 = 0.01507440267955;  // 1 / 4 / pi - 2 / pi^3
-    const double c3 = 0.00546765085347;  // 3 / pi^4 - 1 / 4 / pi^2
+  if (theta > DART_PI - DART_EPSILON)
+  {
+    constexpr double c1 = 1.0 / std::pow(DART_PI, 2);
+    constexpr double c2 = 1.0 / (4.0 * DART_PI) - 2.0 / std::pow(DART_PI, 3);
+    constexpr double c3 = 3.0 / std::pow(DART_PI, 4)
+                          - 1.0 / (4.0 * std::pow(DART_PI, 2));
 
     double phi = DART_PI - theta;
     double delta = 0.5 + 0.125*phi*phi;
@@ -605,13 +635,18 @@ Eigen::Vector6d logMap(const Eigen::Isometry3d& _T) {
         beta*_T(0, 3) - 0.5*(w[1]*_T(2, 3) - w[2]*_T(1, 3)) + gamma*w[0],
         beta*_T(1, 3) - 0.5*(w[2]*_T(0, 3) - w[0]*_T(2, 3)) + gamma*w[1],
         beta*_T(2, 3) - 0.5*(w[0]*_T(1, 3) - w[1]*_T(0, 3)) + gamma*w[2];
-  } else {
+  }
+  else
+  {
     double alpha;
-    if (theta > DART_EPSILON) {
+    if (theta > DART_EPSILON)
+    {
       alpha = 0.5*theta / sin(theta);
       beta = (1.0 + cos(theta))*alpha;
       gamma = (1.0 - beta) / theta / theta;
-    } else {
+    }
+    else
+    {
       alpha = 0.5 + DART_1_12*theta*theta;
       beta = 1.0 - DART_1_12*theta*theta;
       gamma = DART_1_12 + DART_1_720*theta*theta;
