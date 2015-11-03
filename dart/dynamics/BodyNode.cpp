@@ -1092,11 +1092,11 @@ BodyNode::BodyNode(BodyNode* _parentBodyNode, Joint* _parentJoint,
     mImpF(Eigen::Vector6d::Zero()),
     onColShapeAdded(mColShapeAddedSignal),
     onColShapeRemoved(mColShapeRemovedSignal),
-    onStructuralChange(mStructuralChangeSignal)
+    onStructuralChange(mStructuralChangeSignal),
+    // Generate an inert destructor to make sure that it will not try to
+    // double-delete this BodyNode when it gets destroyed.
+    mSelfDestructor(std::shared_ptr<NodeDestructor>(new NodeDestructor(nullptr)))
 {
-  // Generate an inert destructor to make sure that it will not try to
-  // double-delete this BodyNode when it gets destroyed.
-  mSelfDestructor = std::shared_ptr<NodeDestructor>(new NodeDestructor(nullptr));
   mDestructor = mSelfDestructor;
 
   mParentJoint->mChildBodyNode = this;

@@ -548,7 +548,7 @@ HierarchicalIK::HierarchicalIK(const SkeletonPtr& _skeleton)
 }
 
 //==============================================================================
-void HierarchicalIK::initialize(const std::shared_ptr<HierarchicalIK> my_ptr)
+void HierarchicalIK::initialize(const std::shared_ptr<HierarchicalIK>& my_ptr)
 {
   mPtr = my_ptr;
 
@@ -683,7 +683,7 @@ CompositeIK::ConstModuleSet CompositeIK::getModuleSet() const
 //==============================================================================
 void CompositeIK::refreshIKHierarchy()
 {
-  if(mModuleSet.size() == 0)
+  if(mModuleSet.empty())
   {
     mHierarchy.clear();
     return;
