@@ -89,6 +89,7 @@ extern "C" void dError (int num, const char *msg, ...)
   va_start (ap,msg);
   if (error_function) error_function (num,msg,ap);
   else printMessage (num,"ODE Error",msg,ap);
+  va_end (ap);
   exit (1);
 }
 
@@ -99,6 +100,7 @@ extern "C" void dDebug (int num, const char *msg, ...)
   va_start (ap,msg);
   if (debug_function) debug_function (num,msg,ap);
   else printMessage (num,"ODE INTERNAL ERROR",msg,ap);
+  va_end (ap);
   // *((char *)0) = 0;   ... commit SEGVicide
   abort();
 }
@@ -110,6 +112,7 @@ extern "C" void dMessage (int num, const char *msg, ...)
   va_start (ap,msg);
   if (message_function) message_function (num,msg,ap);
   else printMessage (num,"ODE Message",msg,ap);
+  va_end (ap);
 }
 
 #endif
@@ -147,6 +150,7 @@ extern "C" void dError (int num, const char *msg, ...)
     s[sizeof(s)-1] = 0;
     MessageBox(0,s,title,MB_OK | MB_ICONWARNING);
   }
+  va_end (ap);
   exit (1);
 }
 
@@ -163,6 +167,7 @@ extern "C" void dDebug (int num, const char *msg, ...)
     s[sizeof(s)-1] = 0;
     MessageBox(0,s,title,MB_OK | MB_ICONSTOP);
   }
+  va_end (ap);
   abort();
 }
 
@@ -173,6 +178,7 @@ extern "C" void dMessage (int num, const char *msg, ...)
   va_start (ap,msg);
   if (message_function) message_function (num,msg,ap);
   else printMessage (num,"ODE Message",msg,ap);
+  va_end (ap);
 }
 
 

@@ -208,6 +208,7 @@ bool FCLMeshCollisionNode::detectCollision(FCLMeshCollisionNode* _otherNode,
         pair1.penetrationDepth = res.getContact(k).penetration_depth;
         pair1.shape1 = pair1.bodyNode1.lock()->getCollisionShape(i);
         pair1.shape2 = pair1.bodyNode2.lock()->getCollisionShape(j);
+        pair1.userData = nullptr;
         pair2 = pair1;
         int contactResult =
             evalContactPosition(res.getContact(k), mMeshes[i],
