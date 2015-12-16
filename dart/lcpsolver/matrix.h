@@ -29,7 +29,7 @@
 
 
 #ifdef __cplusplus
-extern "C" {
+//extern "C" {
 #endif
 
 
@@ -274,7 +274,7 @@ PURE_INLINE size_t _dEstimateLDLTRemoveTmpbufSize(int n2, int nskip)
 
 
 #ifdef __cplusplus
-}
+//}
 #endif
 
 #endif

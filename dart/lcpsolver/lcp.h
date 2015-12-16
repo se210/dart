@@ -57,12 +57,17 @@ to be implemented. the first `nub' variables are assumed to have findex < 0.
 #include "dart/lcpsolver/odeconfig.h"
 #include "dart/lcpsolver/common.h"
 
+namespace dart
+{
+
 void dSolveLCP (int n, dReal *A, dReal *x, dReal *b, dReal *w,
 	int nub, dReal *lo, dReal *hi, int *findex);
 
 size_t dEstimateSolveLCPMemoryReq(int n, bool outer_w_avail);
 
 
-extern "C" ODE_API int dTestSolveLCP();
+int dTestSolveLCP();
+
+}
 
 #endif

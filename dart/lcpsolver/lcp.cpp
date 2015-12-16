@@ -355,6 +355,10 @@ static void checkPermutations (int i, int n, int nC, int nN, int *p, int *C)
 
 #ifdef dLCP_FAST
 
+using namespace dart;
+
+namespace dart
+{
 struct dLCP {
   const int m_n;
   const int m_nskip;
@@ -391,6 +395,7 @@ struct dLCP {
   void solve1 (dReal *a, int i, int dir=1, int only_transfer=0);
   void unpermute();
 };
+}
 
 
 dLCP::dLCP (int _n, int _nskip, int _nub, dReal *_Adata, dReal *_x, dReal *_b, dReal *_w,
@@ -777,7 +782,7 @@ void dLCP::unpermute()
 //***************************************************************************
 // an optimized Dantzig LCP driver routine for the lo-hi LCP problem.
 
-void dSolveLCP (int n, dReal *A, dReal *x, dReal *b,
+void dart::dSolveLCP (int n, dReal *A, dReal *x, dReal *b,
                 dReal *outer_w/*=nullptr*/, int nub, dReal *lo, dReal *hi, int *findex)
 {
   dAASSERT (n>0 && A && x && b && lo && hi && nub >= 0 && nub <= n);
@@ -1082,7 +1087,7 @@ void dSolveLCP (int n, dReal *A, dReal *x, dReal *b,
   delete[] state;
 }
 
-size_t dEstimateSolveLCPMemoryReq(int n, bool outer_w_avail)
+size_t dart::dEstimateSolveLCPMemoryReq(int n, bool outer_w_avail)
 {
   const int nskip = dPAD(n);
 
@@ -1124,7 +1129,7 @@ size_t dEstimateSolveLCPMemoryReq(int n, bool outer_w_avail)
 //  return res;
 //}
 
-extern "C" ODE_API int dTestSolveLCP()
+int dart::dTestSolveLCP()
 {
   const int n = 100;
 
